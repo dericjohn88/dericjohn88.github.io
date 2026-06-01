@@ -1,2 +1,6 @@
 # dericjohn88.github.io
-Hosted Website for API Calls
+
+Hosted website for a split API layout:
+
+- public/front-facing API access
+- private/rear-facing diagnostics and operations
