@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Deric John | API Hosting</title>
+  <meta name="description" content="Static GitHub Pages dashboard for Deric John's hosted tools, endpoints, and API status overview.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="site-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">GitHub Pages Migration</p>
+        <h1>API hosting, project notes, and status reporting without the Wix runtime.</h1>
+        <p class="hero-text">This site is the static translation of the original dashboard shell. It keeps the dashboard view, tool registry, and endpoint inventory in plain HTML, CSS, and vanilla JavaScript so it can live directly in GitHub Pages.</p>
+      </div>
+      <div class="hero-panel">
+        <p class="panel-label">Current surface</p>
+        <ul class="hero-list">
+          <li>Static project dashboard</li>
+          <li>Tool health snapshot</li>
+          <li>Endpoint inventory</li>
+          <li>GitHub-native hosting</li>
+        </ul>
+      </div>
+    </header>
+
+    <main class="page-grid">
+      <section class="section-block">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Overview</p>
+            <h2>Hosted tool registry</h2>
+          </div>
+          <p class="section-text">The original Wix embed generated these cards dynamically. This version keeps the same information architecture in a static site that can be extended without platform-specific dependencies.</p>
+        </div>
+        <div class="stats-grid" id="statsGrid"></div>
+      </section>
+
+      <section class="section-block tools-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Applications</p>
+            <h2>Current tools</h2>
+          </div>
+          <p class="section-text">Select a tool to inspect its status, ownership, and endpoint layout.</p>
+        </div>
+        <div class="tools-layout">
+          <div class="tool-grid" id="toolGrid"></div>
+          <aside class="detail-panel" id="detailPanel" aria-live="polite"></aside>
+        </div>
+      </section>
+
+      <section class="section-block infrastructure-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Hosting</p>
+            <h2>Static deployment notes</h2>
+          </div>
+          <p class="section-text">The Wix-specific owner login gate and backend `.jsw` calls are intentionally not reproduced here. GitHub Pages is now the presentation layer, while protected runtime features can move behind separate services as the hosting strategy evolves.</p>
+        </div>
+        <div class="infrastructure-grid">
+          <article class="info-card">
+            <span class="info-label">Frontend</span>
+            <h3>Plain HTML, CSS, and JavaScript</h3>
+            <p>No framework build step is required for this repository. The page is ready to publish directly from the default branch.</p>
+          </article>
+          <article class="info-card">
+            <span class="info-label">Auth</span>
+            <h3>Decoupled from hosting</h3>
+            <p>The old Google + Wix Members gate was platform-bound. Any future authentication should live in a dedicated service, not the static site layer.</p>
+          </article>
+          <article class="info-card">
+            <span class="info-label">API Docs</span>
+            <h3>Endpoint inventory retained</h3>
+            <p>The current tool cards and detail panel still expose the endpoint structure so the site can serve as a lightweight operational reference.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
