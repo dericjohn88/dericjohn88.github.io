@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Deric John | API Hosting</title>
-  <meta name="description" content="Static GitHub Pages dashboard for Deric John's hosted tools, endpoints, and API status overview.">
+  <meta name="description" content="Dark-mode GitHub Pages dashboard for Deric John's hosted tools, endpoints, and owner access layer.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -14,19 +14,19 @@
   <div class="site-shell">
     <header class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">GitHub Pages Migration</p>
-        <h1>API hosting, project notes, and status reporting without the Wix runtime.</h1>
-        <p class="hero-text">This site is the static translation of the original dashboard shell. It keeps the dashboard view, tool registry, and endpoint inventory in plain HTML, CSS, and vanilla JavaScript so it can live directly in GitHub Pages.</p>
+        <p class="eyebrow">GitHub Pages Surface</p>
+        <h1>Dark-mode API hosting, project notes, and operator visibility from a static site.</h1>
+        <p class="hero-text">This site keeps the dashboard view, tool registry, and endpoint inventory in plain HTML, CSS, and vanilla JavaScript so it can live directly in GitHub Pages without a framework runtime.</p>
       </div>
-      <div class="hero-panel">
-        <p class="panel-label">Current surface</p>
-        <ul class="hero-list">
-          <li>Static project dashboard</li>
-          <li>Tool health snapshot</li>
-          <li>Endpoint inventory</li>
-          <li>GitHub-native hosting</li>
-        </ul>
-      </div>
+      <aside class="owner-access-card" id="ownerAccessCard">
+        <p class="panel-label">Owner Layer</p>
+        <h2>Secondary Google access</h2>
+        <p class="owner-copy">The public dashboard stays visible. Sign in with the configured Google account to unlock the operator panel and endpoint inventory.</p>
+        <div class="owner-status owner-status--neutral" id="ownerStatus">Owner layer locked.</div>
+        <div class="google-button-slot" id="googleButton"></div>
+        <button class="button ghost" id="signOutButton" type="button" hidden>Sign out</button>
+        <p class="owner-note" id="ownerNote">This is a client-side visibility layer on a public site. Anything truly sensitive still needs backend protection.</p>
+      </aside>
     </header>
 
     <main class="page-grid">
@@ -36,7 +36,7 @@
             <p class="eyebrow">Overview</p>
             <h2>Hosted tool registry</h2>
           </div>
-          <p class="section-text">The original Wix embed generated these cards dynamically. This version keeps the same information architecture in a static site that can be extended without platform-specific dependencies.</p>
+          <p class="section-text">The dashboard structure now lives directly in the repository, with portable styling and client-side rendering that can be extended without platform lock-in.</p>
         </div>
         <div class="stats-grid" id="statsGrid"></div>
       </section>
@@ -59,9 +59,9 @@
         <div class="section-heading">
           <div>
             <p class="eyebrow">Hosting</p>
-            <h2>Static deployment notes</h2>
+            <h2>Delivery model</h2>
           </div>
-          <p class="section-text">The Wix-specific owner login gate and backend `.jsw` calls are intentionally not reproduced here. GitHub Pages is now the presentation layer, while protected runtime features can move behind separate services as the hosting strategy evolves.</p>
+          <p class="section-text">GitHub Pages is now the presentation layer. Protected operations should move behind separate services over time, while this repository stays focused on the public dashboard and owner operator view.</p>
         </div>
         <div class="infrastructure-grid">
           <article class="info-card">
@@ -70,9 +70,9 @@
             <p>No framework build step is required for this repository. The page is ready to publish directly from the default branch.</p>
           </article>
           <article class="info-card">
-            <span class="info-label">Auth</span>
-            <h3>Decoupled from hosting</h3>
-            <p>The old Google + Wix Members gate was platform-bound. Any future authentication should live in a dedicated service, not the static site layer.</p>
+            <span class="info-label">Owner Access</span>
+            <h3>Google-gated operator panel</h3>
+            <p>The owner panel can be unlocked with a configured Google account for a second-layer interface gate, while the public-facing site remains readable.</p>
           </article>
           <article class="info-card">
             <span class="info-label">API Docs</span>
@@ -84,6 +84,8 @@
     </main>
   </div>
 
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="site-config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
