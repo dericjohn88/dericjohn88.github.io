@@ -398,6 +398,7 @@ function updateAuthUi() {
   if (currentUser) {
     setOwnerStatus(`Signed in as ${currentUser.email || currentUser.displayName || "owner"}.`, "success");
     ownerNote.textContent = "Firebase Authentication is active. Private tool documents now come from Firestore subject to your project rules.";
+    setOwnerMeta(`Project: ${siteConfig.firebase.projectId} | Collection: ${siteConfig.firestore.privateToolsCollection} | Email: ${currentUser.email || "not available"} | UID: ${currentUser.uid || "not available"}`);
     signInButton.textContent = "Sign in with Google";
     return;
   }

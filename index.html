@@ -14,17 +14,16 @@
   <div class="site-shell">
     <header class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">GitHub Pages Surface</p>
-        <h1>Dark-mode API hosting, project notes, and operator visibility from a static site.</h1>
-        <p class="hero-text">This site keeps the dashboard view, tool registry, and public status inventory in plain HTML, CSS, and vanilla JavaScript so it can live directly in GitHub Pages without a framework runtime.</p>
+        <p class="eyebrow">Dericjohn88 API Site</p>
+        <h1>Personalized API hosting for various projects</h1>
+        <p class="hero-text">This site provides a frontend dashboard for managing and monitoring tool health and status, and providing a frontend for API calls that support my projects. 
       </div>
       <aside class="owner-access-card" id="ownerAccessCard">
-        <p class="panel-label">Firebase Access</p>
+        <p class="panel-label">Log on</p>
         <h2>Owner operator panel</h2>
-        <p class="owner-copy">The public dashboard stays readable. Firebase Authentication unlocks the operator panel, and Firestore can hold the private tool details behind your project rules.</p>
-        <div class="owner-status owner-status--neutral" id="ownerStatus">Firebase owner layer is waiting for configuration.</div>
+        <div class="owner-status owner-status--neutral" id="ownerStatus">Please Sign in with Google Logon credentials.</div>
         <div class="owner-actions">
-          <button class="button primary" id="signInButton" type="button">Sign in with Google</button>
+          <button class="button primary" id="signInButton" type="button">Sign in!</button>
           <button class="button ghost" id="signOutButton" type="button" hidden>Sign out</button>
         </div>
         <div class="owner-meta" id="ownerMeta">Firebase config not loaded yet.</div>
@@ -37,9 +36,9 @@
         <div class="section-heading">
           <div>
             <p class="eyebrow">Overview</p>
-            <h2>Hosted tool registry</h2>
+            <h2>Hosted tools</h2>
           </div>
-          <p class="section-text">The dashboard structure now lives directly in the repository, with portable styling and client-side rendering that can be extended without platform lock-in.</p>
+          <p class="section-text">This panel provides a snapshot of the total tools/applications hosted, the health of each tool, and recent activity metrics.</p>
         </div>
         <div class="stats-grid" id="statsGrid"></div>
       </section>
@@ -50,7 +49,7 @@
             <p class="eyebrow">Applications</p>
             <h2>Current tools</h2>
           </div>
-          <p class="section-text">Select a tool to inspect its public status. Private operator details appear only after Firebase auth succeeds and Firestore returns the protected document.</p>
+          <p class="section-text">Select an application to inspect its status. Additional information will be available with successful logon</p>
         </div>
         <div class="tools-layout">
           <div class="tool-grid" id="toolGrid"></div>
