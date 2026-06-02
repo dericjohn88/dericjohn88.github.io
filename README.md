@@ -26,7 +26,7 @@ Expected Firestore document example for `privateTools/meal-reminder`:
 
 ```json
 {
-	"apiBaseUrl": "https://api.dericjohn.net",
+	"apiBaseUrl": "https://dericjohn88.github.io",
 	"endpoints": [
 		{ "label": "Health", "path": "/api/health" },
 		{ "label": "Tool List", "path": "/api/tools" },

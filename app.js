@@ -12,6 +12,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc, getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+const defaultPublicBaseUrl = window.location.origin || "https://dericjohn88.github.io";
+
 const tools = [
   {
     analytics: {
@@ -21,7 +23,7 @@ const tools = [
       uptimePercent: 99.98,
     },
     description: "This application provides personalized thawing recommendations and scheduling.",
-    publicBaseUrl: "https://api.dericjohn.net",
+    publicBaseUrl: defaultPublicBaseUrl,
     publicNotes: "Public-facing overview only. Private operator details can load from Firestore after sign-in.",
     name: "Personal Meal Reminder",
     slug: "meal-reminder",
