@@ -3,9 +3,11 @@ import {
   GoogleAuthProvider,
   browserLocalPersistence,
   getAuth,
+  getRedirectResult,
   onAuthStateChanged,
   setPersistence,
   signInWithPopup,
+  signInWithRedirect,
   signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc, getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -421,8 +423,19 @@ async function handleSignIn() {
   try {
     await signInWithPopup(authInstance, provider);
   } catch (error) {
-    setOwnerStatus("Google sign-in did not complete. Check the Firebase Auth provider and authorized domains.", "error");
+    const errorCode = error && error.code ? String(error.code) : "unknown-error";
+
+    if (errorCode === "unknown-error" || errorCode === "auth/popup-blocked" || errorCode === "auth/cancelled-popup-request") {
+      setOwnerStatus("Popup sign-in was interrupted. Redirecting to Google sign-in...", "warning");
+      ownerNote.textContent = "The browser refused the popup flow, so the site is falling back to redirect-based Firebase sign-in.";
+      setOwnerMeta(`Project: ${siteConfig.firebase.projectId} | Collection: ${siteConfig.firestore.privateToolsCollection} | Fallback: redirect`);
+      await signInWithRedirect(authInstance, provider);
+      return;
+    }
+
+    setOwnerStatus(`Google sign-in did not complete (${errorCode}).`, "error");
     ownerNote.textContent = "Common fixes are enabling Google sign-in in Firebase Auth and adding your GitHub Pages domain as an authorized domain.";
+    setOwnerMeta(`Project: ${siteConfig.firebase.projectId} | Collection: ${siteConfig.firestore.privateToolsCollection} | Last auth error: ${errorCode}`);
   }
 }
 
@@ -452,6 +465,15 @@ async function initializeFirebase() {
     await setPersistence(authInstance, browserLocalPersistence);
   } catch (error) {
     setOwnerStatus("Firebase loaded, but auth persistence could not be set in this browser.", "warning");
+  }
+
+  try {
+    await getRedirectResult(authInstance);
+  } catch (error) {
+    const errorCode = error && error.code ? String(error.code) : "unknown-error";
+    setOwnerStatus(`Firebase redirect sign-in did not complete (${errorCode}).`, "error");
+    ownerNote.textContent = "Check the Firebase Authentication provider, authorized domains, and whether the Google popup/redirect returned to this site successfully.";
+    setOwnerMeta(`Project: ${siteConfig.firebase.projectId} | Collection: ${siteConfig.firestore.privateToolsCollection} | Last auth error: ${errorCode}`);
   }
 
   onAuthStateChanged(authInstance, async (user) => {
