@@ -26,7 +26,6 @@
           <button class="button primary" id="signInButton" type="button">Sign in!</button>
           <button class="button ghost" id="signOutButton" type="button" hidden>Sign out</button>
         </div>
-        <div class="owner-meta" id="ownerMeta">Firebase config not loaded yet.</div>
         <p class="owner-note" id="ownerNote">Only public Firebase configuration belongs in this repository. Real access control should come from Firebase Auth and Firestore rules.</p>
       </aside>
     </header>
@@ -57,32 +56,6 @@
         </div>
       </section>
 
-      <section class="section-block infrastructure-section">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Hosting</p>
-            <h2>Delivery model</h2>
-          </div>
-          <p class="section-text">GitHub Pages is the presentation layer. Firebase handles identity, and Firestore can serve the owner-only tool details once your project rules are in place.</p>
-        </div>
-        <div class="infrastructure-grid">
-          <article class="info-card">
-            <span class="info-label">Frontend</span>
-            <h3>Plain HTML, CSS, and JavaScript</h3>
-            <p>No framework build step is required for this repository. The page is ready to publish directly from the default branch.</p>
-          </article>
-          <article class="info-card">
-            <span class="info-label">Owner Access</span>
-            <h3>Firebase Authentication</h3>
-            <p>The owner panel is now prepared for Firebase Google sign-in and protected Firestore reads instead of a browser-only access check.</p>
-          </article>
-          <article class="info-card">
-            <span class="info-label">API Docs</span>
-            <h3>Endpoint inventory retained</h3>
-            <p>The public dashboard stays visible while the private tool detail documents can move into Firestore as your project comes online.</p>
-          </article>
-        </div>
-      </section>
     </main>
   </div>
 

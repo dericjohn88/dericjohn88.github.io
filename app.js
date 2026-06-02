@@ -95,6 +95,10 @@ function setOwnerStatus(message, tone) {
 }
 
 function setOwnerMeta(message) {
+  if (!ownerMeta) {
+    return;
+  }
+
   ownerMeta.textContent = message;
 }
 
