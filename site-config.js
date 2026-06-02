@@ -1,4 +1,13 @@
 window.DJ_SITE_CONFIG = {
-  googleClientId: "REPLACE_WITH_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
-  ownerEmail: "REPLACE_WITH_OWNER_EMAIL",
+  firebase: {
+    apiKey: "REPLACE_WITH_FIREBASE_API_KEY",
+    authDomain: "REPLACE_WITH_PROJECT_ID.firebaseapp.com",
+    projectId: "REPLACE_WITH_PROJECT_ID",
+    storageBucket: "REPLACE_WITH_PROJECT_ID.firebasestorage.app",
+    messagingSenderId: "REPLACE_WITH_MESSAGING_SENDER_ID",
+    appId: "REPLACE_WITH_APP_ID",
+  },
+  firestore: {
+    privateToolsCollection: "privateTools",
+  },
 };

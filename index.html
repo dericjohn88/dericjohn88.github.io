@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Deric John | API Hosting</title>
-  <meta name="description" content="Dark-mode GitHub Pages dashboard for Deric John's hosted tools, endpoints, and owner access layer.">
+  <meta name="description" content="Dark-mode GitHub Pages dashboard for Deric John's hosted tools, public status view, and Firebase-backed owner panel.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,16 +16,19 @@
       <div class="hero-copy">
         <p class="eyebrow">GitHub Pages Surface</p>
         <h1>Dark-mode API hosting, project notes, and operator visibility from a static site.</h1>
-        <p class="hero-text">This site keeps the dashboard view, tool registry, and endpoint inventory in plain HTML, CSS, and vanilla JavaScript so it can live directly in GitHub Pages without a framework runtime.</p>
+        <p class="hero-text">This site keeps the dashboard view, tool registry, and public status inventory in plain HTML, CSS, and vanilla JavaScript so it can live directly in GitHub Pages without a framework runtime.</p>
       </div>
       <aside class="owner-access-card" id="ownerAccessCard">
-        <p class="panel-label">Owner Layer</p>
-        <h2>Secondary Google access</h2>
-        <p class="owner-copy">The public dashboard stays visible. Sign in with the configured Google account to unlock the operator panel and endpoint inventory.</p>
-        <div class="owner-status owner-status--neutral" id="ownerStatus">Owner layer locked.</div>
-        <div class="google-button-slot" id="googleButton"></div>
-        <button class="button ghost" id="signOutButton" type="button" hidden>Sign out</button>
-        <p class="owner-note" id="ownerNote">This is a client-side visibility layer on a public site. Anything truly sensitive still needs backend protection.</p>
+        <p class="panel-label">Firebase Access</p>
+        <h2>Owner operator panel</h2>
+        <p class="owner-copy">The public dashboard stays readable. Firebase Authentication unlocks the operator panel, and Firestore can hold the private tool details behind your project rules.</p>
+        <div class="owner-status owner-status--neutral" id="ownerStatus">Firebase owner layer is waiting for configuration.</div>
+        <div class="owner-actions">
+          <button class="button primary" id="signInButton" type="button">Sign in with Google</button>
+          <button class="button ghost" id="signOutButton" type="button" hidden>Sign out</button>
+        </div>
+        <div class="owner-meta" id="ownerMeta">Firebase config not loaded yet.</div>
+        <p class="owner-note" id="ownerNote">Only public Firebase configuration belongs in this repository. Real access control should come from Firebase Auth and Firestore rules.</p>
       </aside>
     </header>
 
@@ -47,7 +50,7 @@
             <p class="eyebrow">Applications</p>
             <h2>Current tools</h2>
           </div>
-          <p class="section-text">Select a tool to inspect its status, ownership, and endpoint layout.</p>
+          <p class="section-text">Select a tool to inspect its public status. Private operator details appear only after Firebase auth succeeds and Firestore returns the protected document.</p>
         </div>
         <div class="tools-layout">
           <div class="tool-grid" id="toolGrid"></div>
@@ -61,7 +64,7 @@
             <p class="eyebrow">Hosting</p>
             <h2>Delivery model</h2>
           </div>
-          <p class="section-text">GitHub Pages is now the presentation layer. Protected operations should move behind separate services over time, while this repository stays focused on the public dashboard and owner operator view.</p>
+          <p class="section-text">GitHub Pages is the presentation layer. Firebase handles identity, and Firestore can serve the owner-only tool details once your project rules are in place.</p>
         </div>
         <div class="infrastructure-grid">
           <article class="info-card">
@@ -71,21 +74,20 @@
           </article>
           <article class="info-card">
             <span class="info-label">Owner Access</span>
-            <h3>Google-gated operator panel</h3>
-            <p>The owner panel can be unlocked with a configured Google account for a second-layer interface gate, while the public-facing site remains readable.</p>
+            <h3>Firebase Authentication</h3>
+            <p>The owner panel is now prepared for Firebase Google sign-in and protected Firestore reads instead of a browser-only access check.</p>
           </article>
           <article class="info-card">
             <span class="info-label">API Docs</span>
             <h3>Endpoint inventory retained</h3>
-            <p>The current tool cards and detail panel still expose the endpoint structure so the site can serve as a lightweight operational reference.</p>
+            <p>The public dashboard stays visible while the private tool detail documents can move into Firestore as your project comes online.</p>
           </article>
         </div>
       </section>
     </main>
   </div>
 
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="site-config.js"></script>
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
