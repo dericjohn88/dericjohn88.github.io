@@ -1,3 +1,15 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  GoogleAuthProvider,
+  browserLocalPersistence,
+  getAuth,
+  onAuthStateChanged,
+  setPersistence,
+  signInWithPopup,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, getDoc, getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 const tools = [
   {
     analytics: {
@@ -6,38 +18,48 @@ const tools = [
       requests24h: 1240,
       uptimePercent: 99.98,
     },
-    apiBaseUrl: "https://api.dericjohn.net",
     description: "This application provides personalized thawing recommendations and scheduling.",
-    endpoints: [
-      { label: "Health", path: "/api/health" },
-      { label: "Tool List", path: "/api/tools" },
-      { label: "Tool Detail", path: "/api/tools/meal-reminder" },
-    ],
-    lastUpdated: "June 2026",
+    publicBaseUrl: "https://api.dericjohn.net",
+    publicNotes: "Public-facing overview only. Private operator details can load from Firestore after sign-in.",
     name: "Personal Meal Reminder",
-    owner: "Deric John",
     slug: "meal-reminder",
     status: "healthy",
   },
 ];
 
-const SESSION_KEY = "dj-owner-layer";
 const defaultConfig = {
-  googleClientId: "REPLACE_WITH_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
-  ownerEmail: "REPLACE_WITH_OWNER_EMAIL",
+  firebase: {
+    apiKey: "REPLACE_WITH_FIREBASE_API_KEY",
+    authDomain: "REPLACE_WITH_PROJECT_ID.firebaseapp.com",
+    projectId: "REPLACE_WITH_PROJECT_ID",
+    storageBucket: "REPLACE_WITH_PROJECT_ID.firebasestorage.app",
+    messagingSenderId: "REPLACE_WITH_MESSAGING_SENDER_ID",
+    appId: "REPLACE_WITH_APP_ID",
+  },
+  firestore: {
+    privateToolsCollection: "privateTools",
+  },
 };
-const ownerConfig = Object.assign({}, defaultConfig, window.DJ_SITE_CONFIG || {});
+
+const siteConfig = {
+  firebase: Object.assign({}, defaultConfig.firebase, window.DJ_SITE_CONFIG && window.DJ_SITE_CONFIG.firebase),
+  firestore: Object.assign({}, defaultConfig.firestore, window.DJ_SITE_CONFIG && window.DJ_SITE_CONFIG.firestore),
+};
 
 const statsGrid = document.getElementById("statsGrid");
 const toolGrid = document.getElementById("toolGrid");
 const detailPanel = document.getElementById("detailPanel");
 const ownerStatus = document.getElementById("ownerStatus");
 const ownerNote = document.getElementById("ownerNote");
-const googleButton = document.getElementById("googleButton");
+const ownerMeta = document.getElementById("ownerMeta");
+const signInButton = document.getElementById("signInButton");
 const signOutButton = document.getElementById("signOutButton");
 
 let selectedSlug = tools[0] ? tools[0].slug : "";
-let ownerSession = null;
+let authInstance = null;
+let firestoreInstance = null;
+let currentUser = null;
+const privateToolCache = new Map();
 
 function formatNumber(value) {
   return Number(value || 0).toLocaleString("en-US");
@@ -51,8 +73,16 @@ function isPlaceholder(value) {
   return !value || String(value).includes("REPLACE_WITH");
 }
 
-function hasOwnerConfig() {
-  return !isPlaceholder(ownerConfig.googleClientId) && !isPlaceholder(ownerConfig.ownerEmail);
+function isFirebaseConfigured() {
+  const config = siteConfig.firebase;
+
+  return [
+    config.apiKey,
+    config.authDomain,
+    config.projectId,
+    config.appId,
+    config.messagingSenderId,
+  ].every((value) => !isPlaceholder(value));
 }
 
 function setOwnerStatus(message, tone) {
@@ -60,41 +90,8 @@ function setOwnerStatus(message, tone) {
   ownerStatus.className = `owner-status owner-status--${tone}`;
 }
 
-function saveOwnerSession(profile) {
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(profile));
-}
-
-function readOwnerSession() {
-  try {
-    return JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
-  } catch (error) {
-    return null;
-  }
-}
-
-function clearOwnerSession() {
-  sessionStorage.removeItem(SESSION_KEY);
-}
-
-function decodeCredential(token) {
-  const payload = token.split(".")[1] || "";
-  const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
-  const json = decodeURIComponent(
-    atob(base64)
-      .split("")
-      .map((character) => `%${(`00${character.charCodeAt(0).toString(16)}`).slice(-2)}`)
-      .join("")
-  );
-
-  return JSON.parse(json);
-}
-
-function isAuthorizedEmail(email) {
-  return String(email || "").trim().toLowerCase() === String(ownerConfig.ownerEmail || "").trim().toLowerCase();
-}
-
-function isOwnerUnlocked() {
-  return Boolean(ownerSession && isAuthorizedEmail(ownerSession.email));
+function setOwnerMeta(message) {
+  ownerMeta.textContent = message;
 }
 
 function getSummary() {
@@ -118,7 +115,7 @@ function createStatCards() {
   const cards = [
     {
       label: "Applications",
-      note: "Current hosted entries in the registry.",
+      note: "Current public entries in the registry.",
       value: formatNumber(summary.total),
     },
     {
@@ -188,7 +185,7 @@ function renderTools() {
   toolGrid.querySelectorAll("[data-slug]").forEach((button) => {
     button.addEventListener("click", () => {
       selectedSlug = button.dataset.slug;
-      renderDetail(selectedSlug);
+      void renderDetail(selectedSlug);
     });
   });
 }
@@ -197,9 +194,9 @@ function renderLockedDetail(tool) {
   detailPanel.innerHTML = `
     <div class="detail-header">
       <div>
-        <p class="eyebrow">Owner Panel</p>
+        <p class="eyebrow">Public View</p>
         <h3 class="locked-title">${tool.name}</h3>
-        <p class="locked-copy">Public visitors can browse the registry, but the operator view requires the configured Google account.</p>
+        <p class="locked-copy">Sign in with Firebase Google auth to request the operator document for this tool.</p>
       </div>
       <span class="status-badge ${tool.status.toLowerCase()}">${tool.status}</span>
     </div>
@@ -210,26 +207,69 @@ function renderLockedDetail(tool) {
         <span class="metric-value">${tool.description}</span>
       </div>
       <div class="locked-highlight">
-        <span class="meta-label">Access</span>
-        <span class="metric-value">Sign in above to reveal endpoints, base URL, and operator notes.</span>
+        <span class="meta-label">Public Base URL</span>
+        <span class="metric-value">${tool.publicBaseUrl}</span>
       </div>
       <div class="locked-highlight">
-        <span class="meta-label">Selected Slug</span>
-        <span class="metric-value">${tool.slug}</span>
+        <span class="meta-label">Owner Data</span>
+        <span class="metric-value">Stored separately in Firestore and loaded only after authentication.</span>
       </div>
     </div>
 
-    <p class="locked-note">This layer improves day-to-day separation on a public site, but it is still client-side. Sensitive operations should live behind a protected backend.</p>
+    <p class="locked-note">${tool.publicNotes}</p>
   `;
 }
 
-function renderUnlockedDetail(tool) {
+function renderLoadingDetail(tool) {
   detailPanel.innerHTML = `
     <div class="detail-header">
       <div>
-        <p class="eyebrow">Selected Tool</p>
+        <p class="eyebrow">Owner Panel</p>
         <h3>${tool.name}</h3>
-        <p class="detail-copy">${tool.description}</p>
+      </div>
+      <span class="status-badge ${tool.status.toLowerCase()}">${tool.status}</span>
+    </div>
+    <div class="detail-loading">Loading the protected tool document from Firestore...</div>
+  `;
+}
+
+function renderUnavailableDetail(tool, message) {
+  detailPanel.innerHTML = `
+    <div class="detail-header">
+      <div>
+        <p class="eyebrow">Owner Panel</p>
+        <h3>${tool.name}</h3>
+        <p class="detail-copy">Firebase auth is active, but the private tool document is not available yet.</p>
+      </div>
+      <span class="status-badge ${tool.status.toLowerCase()}">${tool.status}</span>
+    </div>
+
+    <div class="locked-grid">
+      <div class="locked-highlight">
+        <span class="meta-label">Expected collection</span>
+        <span class="metric-value">${siteConfig.firestore.privateToolsCollection}</span>
+      </div>
+      <div class="locked-highlight">
+        <span class="meta-label">Expected document id</span>
+        <span class="metric-value">${tool.slug}</span>
+      </div>
+      <div class="locked-highlight">
+        <span class="meta-label">Result</span>
+        <span class="metric-value">${message}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderUnlockedDetail(tool, privateData) {
+  const endpoints = Array.isArray(privateData.endpoints) ? privateData.endpoints : [];
+
+  detailPanel.innerHTML = `
+    <div class="detail-header">
+      <div>
+        <p class="eyebrow">Owner Panel</p>
+        <h3>${tool.name}</h3>
+        <p class="detail-copy">${privateData.summary || tool.description}</p>
       </div>
       <span class="status-badge ${tool.status.toLowerCase()}">${tool.status}</span>
     </div>
@@ -240,15 +280,15 @@ function renderUnlockedDetail(tool) {
     </div>
     <div class="detail-meta">
       <span class="meta-label">Owner</span>
-      <span class="meta-value">${tool.owner}</span>
+      <span class="meta-value">${privateData.owner || "Configured in Firestore"}</span>
     </div>
     <div class="detail-meta">
       <span class="meta-label">API Base URL</span>
-      <span class="meta-value">${tool.apiBaseUrl}</span>
+      <span class="meta-value">${privateData.apiBaseUrl || tool.publicBaseUrl}</span>
     </div>
     <div class="detail-meta">
       <span class="meta-label">Last Updated</span>
-      <span class="meta-value">${tool.lastUpdated}</span>
+      <span class="meta-value">${privateData.lastUpdated || "Not provided"}</span>
     </div>
 
     <div class="detail-metrics">
@@ -273,22 +313,52 @@ function renderUnlockedDetail(tool) {
     <div>
       <p class="eyebrow">Endpoints</p>
       <div class="endpoint-list">
-        ${tool.endpoints
-          .map(
-            (endpoint) => `
-              <div class="endpoint-row">
-                <span class="endpoint-label">${endpoint.label}</span>
-                <span class="endpoint-path">${endpoint.path}</span>
-              </div>
-            `
-          )
-          .join("")}
+        ${endpoints.length
+          ? endpoints
+              .map(
+                (endpoint) => `
+                  <div class="endpoint-row">
+                    <span class="endpoint-label">${endpoint.label || "Endpoint"}</span>
+                    <span class="endpoint-path">${endpoint.path || ""}</span>
+                  </div>
+                `
+              )
+              .join("")
+          : '<div class="endpoint-row"><span class="endpoint-label">No endpoints yet</span><span class="endpoint-path">Add an endpoints array to the Firestore document.</span></div>'}
       </div>
     </div>
   `;
 }
 
-function renderDetail(slug) {
+async function loadPrivateTool(slug) {
+  if (!firestoreInstance) {
+    return { error: "Firestore is not initialized yet." };
+  }
+
+  if (privateToolCache.has(slug)) {
+    return privateToolCache.get(slug);
+  }
+
+  try {
+    const snapshot = await getDoc(doc(firestoreInstance, siteConfig.firestore.privateToolsCollection, slug));
+
+    if (!snapshot.exists()) {
+      const missing = { error: "The Firestore document does not exist yet." };
+      privateToolCache.set(slug, missing);
+      return missing;
+    }
+
+    const data = snapshot.data();
+    privateToolCache.set(slug, data);
+    return data;
+  } catch (error) {
+    return {
+      error: "The Firestore read was blocked or failed. Check your Firebase Authentication setup and Firestore rules.",
+    };
+  }
+}
+
+async function renderDetail(slug) {
   const tool = tools.find((item) => item.slug === slug);
 
   if (!tool) {
@@ -300,123 +370,109 @@ function renderDetail(slug) {
     return;
   }
 
-  if (isOwnerUnlocked()) {
-    renderUnlockedDetail(tool);
+  if (!currentUser) {
+    renderLockedDetail(tool);
     return;
   }
 
-  renderLockedDetail(tool);
+  renderLoadingDetail(tool);
+  const privateData = await loadPrivateTool(slug);
+
+  if (privateData && privateData.error) {
+    renderUnavailableDetail(tool, privateData.error);
+    return;
+  }
+
+  renderUnlockedDetail(tool, privateData || {});
 }
 
-function renderGoogleButton() {
-  if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+function updateAuthUi() {
+  signOutButton.hidden = !currentUser;
+  signInButton.hidden = Boolean(currentUser);
+  signInButton.disabled = !isFirebaseConfigured();
+
+  if (currentUser) {
+    setOwnerStatus(`Signed in as ${currentUser.email || currentUser.displayName || "owner"}.`, "success");
+    ownerNote.textContent = "Firebase Authentication is active. Private tool documents now come from Firestore subject to your project rules.";
+    signInButton.textContent = "Sign in with Google";
     return;
   }
 
-  googleButton.innerHTML = "";
-  window.google.accounts.id.renderButton(googleButton, {
-    theme: "filled_black",
-    size: "large",
-    text: "continue_with",
-    shape: "pill",
-    width: 280,
+  if (!isFirebaseConfigured()) {
+    setOwnerStatus("Firebase owner layer is waiting for configuration.", "warning");
+    ownerNote.textContent = "Fill in the Firebase project values in site-config.js, then the Google sign-in button will activate.";
+    signInButton.textContent = "Firebase config required";
+    return;
+  }
+
+  setOwnerStatus("Sign in with Google to load the owner panel from Firebase.", "neutral");
+  ownerNote.textContent = "Public content remains visible. Private operator details come from Firestore only after authentication succeeds.";
+  signInButton.textContent = "Sign in with Google";
+}
+
+async function handleSignIn() {
+  if (!authInstance) {
+    return;
+  }
+
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+
+  try {
+    await signInWithPopup(authInstance, provider);
+  } catch (error) {
+    setOwnerStatus("Google sign-in did not complete. Check the Firebase Auth provider and authorized domains.", "error");
+    ownerNote.textContent = "Common fixes are enabling Google sign-in in Firebase Auth and adding your GitHub Pages domain as an authorized domain.";
+  }
+}
+
+async function handleSignOut() {
+  if (!authInstance) {
+    return;
+  }
+
+  await signOut(authInstance);
+}
+
+async function initializeFirebase() {
+  if (!isFirebaseConfigured()) {
+    setOwnerMeta("Add your Firebase project values in site-config.js to enable sign-in and Firestore reads.");
+    updateAuthUi();
+    await renderDetail(selectedSlug);
+    return;
+  }
+
+  const firebaseApp = initializeApp(siteConfig.firebase);
+  authInstance = getAuth(firebaseApp);
+  firestoreInstance = getFirestore(firebaseApp);
+
+  setOwnerMeta(`Project: ${siteConfig.firebase.projectId} | Collection: ${siteConfig.firestore.privateToolsCollection}`);
+
+  try {
+    await setPersistence(authInstance, browserLocalPersistence);
+  } catch (error) {
+    setOwnerStatus("Firebase loaded, but auth persistence could not be set in this browser.", "warning");
+  }
+
+  onAuthStateChanged(authInstance, async (user) => {
+    currentUser = user || null;
+    if (!currentUser) {
+      privateToolCache.clear();
+    }
+    updateAuthUi();
+    await renderDetail(selectedSlug);
   });
 }
 
-function applyOwnerState(profile) {
-  ownerSession = profile && isAuthorizedEmail(profile.email) ? profile : null;
-  signOutButton.hidden = !ownerSession;
-  renderDetail(selectedSlug);
-}
-
-function handleCredentialResponse(response) {
-  try {
-    const profile = decodeCredential(response.credential || "");
-
-    if (!isAuthorizedEmail(profile.email)) {
-      clearOwnerSession();
-      applyOwnerState(null);
-      setOwnerStatus("That Google account is not allowed for the owner panel.", "error");
-      ownerNote.textContent = `Only ${ownerConfig.ownerEmail} can unlock the operator panel.`;
-      return;
-    }
-
-    const sessionProfile = {
-      email: profile.email,
-      name: profile.name || "Owner",
-      picture: profile.picture || "",
-    };
-
-    saveOwnerSession(sessionProfile);
-    applyOwnerState(sessionProfile);
-    setOwnerStatus(`Owner layer unlocked for ${sessionProfile.email}.`, "success");
-    ownerNote.textContent = "The operator panel is open for this browser session. Use Sign out to lock it again.";
-  } catch (error) {
-    clearOwnerSession();
-    applyOwnerState(null);
-    setOwnerStatus("Google login could not be verified in the browser.", "error");
-    ownerNote.textContent = "The public dashboard still works, but the operator panel stayed locked.";
-  }
-}
-
-function initializeGoogleAccess(attempt) {
-  if (!hasOwnerConfig()) {
-    setOwnerStatus("Owner layer is available after site-config.js is filled in.", "warning");
-    ownerNote.textContent = "Set googleClientId and ownerEmail in site-config.js to enable Google sign-in for the operator panel.";
-    applyOwnerState(null);
-    return;
-  }
-
-  const storedSession = readOwnerSession();
-
-  if (storedSession && isAuthorizedEmail(storedSession.email)) {
-    applyOwnerState(storedSession);
-    setOwnerStatus(`Owner layer unlocked for ${storedSession.email}.`, "success");
-    ownerNote.textContent = "The operator panel is open for this browser session.";
-  } else {
-    applyOwnerState(null);
-    setOwnerStatus(`Sign in with ${ownerConfig.ownerEmail} to unlock the operator panel.`, "neutral");
-    ownerNote.textContent = "Public content remains visible. The Google check only unlocks the owner-side panel.";
-  }
-
-  if (window.google && window.google.accounts && window.google.accounts.id) {
-    window.google.accounts.id.initialize({
-      client_id: ownerConfig.googleClientId,
-      callback: handleCredentialResponse,
-      auto_select: false,
-      cancel_on_tap_outside: true,
-    });
-    renderGoogleButton();
-    return;
-  }
-
-  if (attempt < 25) {
-    setTimeout(() => initializeGoogleAccess(attempt + 1), 250);
-    return;
-  }
-
-  setOwnerStatus("Google identity script did not load.", "error");
-  ownerNote.textContent = "The public dashboard is still available, but owner sign-in could not be initialized in this browser session.";
-}
+signInButton.addEventListener("click", () => {
+  void handleSignIn();
+});
 
 signOutButton.addEventListener("click", () => {
-  clearOwnerSession();
-  applyOwnerState(null);
-
-  if (window.google && window.google.accounts && window.google.accounts.id) {
-    window.google.accounts.id.disableAutoSelect();
-  }
-
-  if (hasOwnerConfig()) {
-    setOwnerStatus(`Sign in with ${ownerConfig.ownerEmail} to unlock the operator panel.`, "neutral");
-    ownerNote.textContent = "Public content remains visible. Sign in again whenever you want to reopen the owner panel.";
-  } else {
-    setOwnerStatus("Owner layer is available after site-config.js is filled in.", "warning");
-    ownerNote.textContent = "Set googleClientId and ownerEmail in site-config.js to enable Google sign-in for the operator panel.";
-  }
+  void handleSignOut();
 });
 
 createStatCards();
 renderTools();
-renderDetail(selectedSlug);
-initializeGoogleAccess(0);
+await renderDetail(selectedSlug);
+await initializeFirebase();
