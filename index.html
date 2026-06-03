@@ -7,7 +7,6 @@
     <style>
       :root {
         color-scheme: light dark;
-        --bg: #0f172a;
         --card: rgba(15, 23, 42, 0.78);
         --text: #e2e8f0;
         --muted: #cbd5e1;
@@ -176,9 +175,9 @@
         </ul>
       </section>
 
-      <section class="card">
+      <section class="card" aria-labelledby="tool-pages-heading">
         <span class="eyebrow">Available pages</span>
-        <h2>Tool-specific API pages</h2>
+        <h2 id="tool-pages-heading">Tool-specific API pages</h2>
         <p>Use these pages for tool-level API details and public entry points.</p>
         <div class="tool-links">
           <a href="/meals/">Meals API</a>
@@ -187,8 +186,8 @@
         </div>
       </section>
 
-      <section class="notice">
-        <h3>Important note</h3>
+      <section class="notice" aria-labelledby="deployment-note-heading">
+        <h3 id="deployment-note-heading">Important note</h3>
         <p>
           GitHub Pages can host this public informational front end, but the
           private diagnostics and API-processing components should be deployed to
