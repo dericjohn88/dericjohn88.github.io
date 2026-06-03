@@ -22,7 +22,7 @@ const tools = [
       requests24h: 1240,
       uptimePercent: 99.98,
     },
-    description: "This application provides personalized thawing recommendations and scheduling.",
+    description: "This application is a personalized application designed to help users better manage their meals and provide Google Calendar reminders based on their specific needs. .",
     publicBaseUrl: defaultPublicBaseUrl,
     publicNotes: "Public-facing overview only. Private operator details can load from Firestore after sign-in.",
     name: "Personal Meal Reminder",
@@ -95,10 +95,6 @@ function setOwnerStatus(message, tone) {
 }
 
 function setOwnerMeta(message) {
-  if (!ownerMeta) {
-    return;
-  }
-
   ownerMeta.textContent = message;
 }
 
@@ -402,7 +398,6 @@ function updateAuthUi() {
   if (currentUser) {
     setOwnerStatus(`Signed in as ${currentUser.email || currentUser.displayName || "owner"}.`, "success");
     ownerNote.textContent = "Firebase Authentication is active. Private tool documents now come from Firestore subject to your project rules.";
-    setOwnerMeta(`Project: ${siteConfig.firebase.projectId} | Collection: ${siteConfig.firestore.privateToolsCollection} | Email: ${currentUser.email || "not available"} | UID: ${currentUser.uid || "not available"}`);
     signInButton.textContent = "Sign in with Google";
     return;
   }
