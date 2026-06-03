@@ -90,8 +90,14 @@
 
       .tool-links {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 16px;
+      }
+
+      @media (max-width: 360px) {
+        .tool-links {
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
       }
 
       .tool-links a {
@@ -111,7 +117,7 @@
 
       .tool-links a:focus-visible {
         border-color: var(--accent);
-        outline: 2px solid #bae6fd;
+        outline: 2px solid #ffffff;
         outline-offset: 2px;
       }
 
