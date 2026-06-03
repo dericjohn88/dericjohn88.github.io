@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meals API</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0f172a;
+        --card: rgba(15, 23, 42, 0.78);
+        --text: #e2e8f0;
+        --muted: #cbd5e1;
+        --accent: #38bdf8;
+        --accent-soft: rgba(56, 189, 248, 0.16);
+        --border: rgba(148, 163, 184, 0.35);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #020617, #0f172a 45%, #1d4ed8);
+        color: var(--text);
+        line-height: 1.6;
+      }
+
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 48px 20px 64px;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 24px;
+        margin-bottom: 20px;
+        backdrop-filter: blur(8px);
+      }
+
+      .eyebrow {
+        display: inline-block;
+        margin-bottom: 12px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: #bae6fd;
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      p,
+      li {
+        color: var(--muted);
+      }
+
+      a {
+        color: #bae6fd;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="card">
+        <span class="eyebrow">Meals</span>
+        <h1>Meals API</h1>
+        <p>
+          Public information for meal-related API calls belongs here. Keep
+          request routing and consumer-facing details on this page, while logs,
+          tracing, and operational diagnostics remain private.
+        </p>
+        <p><a href="/">Back to the main landing page</a></p>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow">Public surface</span>
+        <ul>
+          <li>Example route: <code>/api/meals</code></li>
+          <li>Document request and response expectations for meal tools</li>
+          <li>Only expose client-safe validation and error information</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow">Private surface</span>
+        <ul>
+          <li>Detailed logs and request traces stay off the public page</li>
+          <li>Health checks and dependency status remain internal only</li>
+          <li>Operational dashboards should be restricted to private access</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>
