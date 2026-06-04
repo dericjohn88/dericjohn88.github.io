@@ -1,5 +1,6 @@
 # dericjohn88.github.io
 
+Hosted Website for API Calls
 Static GitHub Pages dashboard for hosted tools, public status views, and a Firebase-backed owner panel.
 
 ## Structure
