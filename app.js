@@ -1,20 +1,75 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  GoogleAuthProvider,
+  browserLocalPersistence,
+  getAuth,
+  getRedirectResult,
+  onAuthStateChanged,
+  setPersistence,
+  signInWithPopup,
+  signInWithRedirect,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 const config = window.siteConfig;
 
 if (!config || !Array.isArray(config.tools) || config.tools.length === 0) {
   throw new Error("siteConfig.tools is required to render the landing page.");
 }
 
-const ownerStateKey = "api-site-owner-preview";
+const ownerConfig = Object.assign(
+  {
+    previewLabel: "Owner view",
+    previewSummary: "Private diagnostics are only visible after Google authentication succeeds.",
+    publicSummary: "Owner-only details stay hidden until you sign in with Google.",
+  },
+  config.owner
+);
+
+const firebaseConfig = Object.assign(
+  {
+    apiKey: "",
+    authDomain: "",
+    projectId: "",
+    storageBucket: "",
+    messagingSenderId: "",
+    appId: "",
+  },
+  window.DJ_SITE_CONFIG && window.DJ_SITE_CONFIG.firebase,
+  config.firebase
+);
+
 const toolGrid = document.getElementById("toolGrid");
 const detailPanel = document.getElementById("detailPanel");
 const statsGrid = document.getElementById("statsGrid");
-const ownerStatus = document.getElementById("ownerStatus");
+const welcomeEyebrow = document.getElementById("welcomeEyebrow");
 const ownerNote = document.getElementById("ownerNote");
 const signInButton = document.getElementById("signInButton");
 const signOutButton = document.getElementById("signOutButton");
 
 let selectedToolSlug = config.tools[0].slug;
-let ownerPreviewEnabled = window.localStorage.getItem(ownerStateKey) === "true";
+let authInstance = null;
+let currentUser = null;
+
+function isFirebaseConfigured() {
+  return [
+    firebaseConfig.apiKey,
+    firebaseConfig.authDomain,
+    firebaseConfig.projectId,
+    firebaseConfig.messagingSenderId,
+    firebaseConfig.appId,
+  ].every((value) => Boolean(String(value || "").trim()));
+}
+
+function setWelcomeMessage(message) {
+  welcomeEyebrow.textContent = message;
+}
+
+function setOwnerNote(message) {
+  if (ownerNote) {
+    ownerNote.textContent = message;
+  }
+}
 
 function getStats(tools) {
   const healthyCount = tools.filter((tool) => tool.health === "healthy").length;
@@ -101,17 +156,17 @@ function renderTools() {
 
 function renderDetail() {
   const tool = config.tools.find((entry) => entry.slug === selectedToolSlug) ?? config.tools[0];
-  const privateList = ownerPreviewEnabled
+  const privateList = currentUser
     ? tool.privateSurface
         .map((item) => `<li>${item}</li>`)
         .join("")
-    : "<li>Sign in to the private environment to inspect live diagnostics.</li>";
+    : "<li>Sign in with Google to inspect owner-only diagnostics.</li>";
 
   detailPanel.innerHTML = `
     <div class="detail-header">
       <div class="detail-title">
         <div>
-          <span class="detail-badge">${ownerPreviewEnabled ? "Owner preview" : "Public view"}</span>
+          <span class="detail-badge">${currentUser ? ownerConfig.previewLabel : "Public view"}</span>
           <h2>${tool.name}</h2>
         </div>
         <span class="status-pill" data-health="${tool.health}">${tool.status}</span>
@@ -134,33 +189,114 @@ function renderDetail() {
       </a>
       <div class="detail-link">
         <strong>Private owner surface</strong>
-        <span>${ownerPreviewEnabled ? config.owner.previewSummary : "Not exposed in this public repository."}</span>
+        <span>${currentUser ? ownerConfig.previewSummary : "Not exposed in this public repository."}</span>
       </div>
     </div>
   `;
 }
 
 function renderOwnerPanel() {
-  ownerStatus.textContent = ownerPreviewEnabled
-    ? `${config.owner.previewLabel} enabled. Internal categories are visible, but live private data stays out of the public repo.`
-    : config.owner.publicSummary;
-  ownerStatus.classList.toggle("owner-status--active", ownerPreviewEnabled);
-  ownerNote.textContent = ownerPreviewEnabled ? config.owner.previewSummary : config.owner.publicSummary;
-  signInButton.hidden = ownerPreviewEnabled;
-  signOutButton.hidden = !ownerPreviewEnabled;
+  if (currentUser) {
+    setWelcomeMessage(`Welcome ${currentUser.email || currentUser.displayName || "owner"}`);
+    setOwnerNote(ownerConfig.previewSummary);
+    signInButton.hidden = true;
+    signOutButton.hidden = false;
+    signInButton.disabled = false;
+    signOutButton.disabled = false;
+    return;
+  }
+
+  setWelcomeMessage("Welcome guest");
+  signInButton.hidden = false;
+  signOutButton.hidden = true;
+  signOutButton.disabled = false;
+
+  if (!isFirebaseConfigured()) {
+    setOwnerNote("Public app summaries stay visible to everyone. Owner-only details appear after sign-in.");
+    signInButton.disabled = true;
+    signInButton.textContent = "Sign in with Google";
+    return;
+  }
+
+  setOwnerNote(ownerConfig.publicSummary);
+  signInButton.disabled = false;
+  signInButton.textContent = "Sign in with Google";
 }
 
-function setOwnerPreview(nextValue) {
-  ownerPreviewEnabled = nextValue;
-  window.localStorage.setItem(ownerStateKey, String(ownerPreviewEnabled));
-  renderOwnerPanel();
-  renderDetail();
+async function handleSignIn() {
+  if (!authInstance || !isFirebaseConfigured()) {
+    return;
+  }
+
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+
+  try {
+    await signInWithPopup(authInstance, provider);
+  } catch (error) {
+    const errorCode = error && error.code ? String(error.code) : "unknown-error";
+
+    if (
+      errorCode === "auth/popup-blocked" ||
+      errorCode === "auth/cancelled-popup-request" ||
+      errorCode === "unknown-error"
+    ) {
+      setOwnerNote("Finishing sign-in...");
+      await signInWithRedirect(authInstance, provider);
+      return;
+    }
+
+    setOwnerNote("Sign-in did not complete. Please try again.");
+  }
 }
 
-signInButton.addEventListener("click", () => setOwnerPreview(true));
-signOutButton.addEventListener("click", () => setOwnerPreview(false));
+async function handleSignOut() {
+  if (!authInstance) {
+    return;
+  }
+
+  await signOut(authInstance);
+}
+
+async function initializeFirebase() {
+  if (!isFirebaseConfigured()) {
+    renderOwnerPanel();
+    renderDetail();
+    return;
+  }
+
+  const firebaseApp = initializeApp(firebaseConfig);
+  authInstance = getAuth(firebaseApp);
+
+  try {
+    await setPersistence(authInstance, browserLocalPersistence);
+  } catch (error) {
+    setOwnerNote("Sign-in is available, but this browser may not remember the session.");
+  }
+
+  try {
+    await getRedirectResult(authInstance);
+  } catch (error) {
+    setOwnerNote("Sign-in did not complete. Please try again.");
+  }
+
+  onAuthStateChanged(authInstance, (user) => {
+    currentUser = user || null;
+    renderOwnerPanel();
+    renderDetail();
+  });
+}
+
+signInButton.addEventListener("click", () => {
+  void handleSignIn();
+});
+
+signOutButton.addEventListener("click", () => {
+  void handleSignOut();
+});
 
 renderStats();
 renderTools();
 renderOwnerPanel();
 renderDetail();
+void initializeFirebase();

@@ -1,4 +1,12 @@
 window.siteConfig = {
+  firebase: {
+    apiKey: "AIzaSyDnTU6aFtglOzEWbRDANA2BxDRPdizmW_E",
+    authDomain: "dericjohn88-9f1fd.firebaseapp.com",
+    projectId: "dericjohn88-9f1fd",
+    storageBucket: "dericjohn88-9f1fd.firebasestorage.app",
+    messagingSenderId: "842234641604",
+    appId: "1:842234641604:web:c25d1e34c6e0d6f7d31d91"
+  },
   owner: {
     previewLabel: "Owner preview mode",
     previewSummary: "This preview only reveals which details are private. It does not expose live credentials, secrets, or backend diagnostics.",

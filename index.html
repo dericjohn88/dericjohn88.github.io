@@ -14,24 +14,17 @@
   <div class="site-shell">
     <header class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">Dericjohn88 API Site</p>
-        <h1>Personalized API hosting for various projects</h1>
-        <p class="hero-text">This site provides a frontend dashboard for monitoring tool health, separating public API surfaces from private diagnostics, and linking out to the application pages that support my projects.</p>
+        <div class="hero-topline">
+          <p class="eyebrow" id="welcomeEyebrow">Welcome guest</p>
+        </div>
+        <h1>Deric's Application Playground</h1>
+        <p class="hero-text">This site is intended to be a landing zone for my personal applications to check the status and statistics of my personal apps. These applications may be opened up later for public use, but for now, they are just ideas.</p>
         <div class="hero-links">
           <a class="button primary" href="#toolGrid">Browse applications</a>
-          <a class="button secondary" href="#ownerAccessCard">Owner preview</a>
-        </div>
-      </div>
-      <aside class="owner-access-card" id="ownerAccessCard">
-        <p class="panel-label">Owner access</p>
-        <h2>Owner operator panel</h2>
-        <div class="owner-status owner-status--neutral" id="ownerStatus">Private diagnostics are hidden by default. Use the preview to verify the split without exposing internal data.</div>
-        <div class="owner-actions">
-          <button class="button primary" id="signInButton" type="button">Preview owner view</button>
+          <button class="button secondary" id="signInButton" type="button">Sign in with Google</button>
           <button class="button ghost" id="signOutButton" type="button" hidden>Sign out</button>
         </div>
-        <p class="owner-note" id="ownerNote">Only public-facing configuration belongs in this repository. Real access control should be enforced separately through your authentication and backend rules.</p>
-      </aside>
+      </div>
     </header>
 
     <main class="page-grid">
@@ -52,7 +45,7 @@
             <p class="eyebrow">Applications</p>
             <h2>Current tools</h2>
           </div>
-          <p class="section-text">Select an application to inspect its public status. Owner preview reveals which operational details stay private.</p>
+          <p class="section-text">Select an application to inspect its public status. Owner-only details unlock after Google sign-in.</p>
         </div>
         <div class="tools-layout">
           <div class="tool-grid" id="toolGrid"></div>
