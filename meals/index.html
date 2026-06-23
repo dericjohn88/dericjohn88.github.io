@@ -1,37 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Meals API</title>
-    <link rel="stylesheet" href="../styles.css">
-  </head>
-  <body>
-    <div class="site-shell">
-      <section class="section-block">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Meals</p>
-            <h1>Meals API</h1>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Meal Reminder | Status</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .metric-card {
+      border-radius: 20px;
+      padding: 22px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      display: grid;
+      gap: 10px;
+    }
+    .metric-value {
+      font-family: "Fraunces", serif;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      color: var(--text);
+      line-height: 1;
+      position: relative;
+    }
+    .metric-label,
+    .metric-footnote {
+      margin: 0;
+      color: var(--muted);
+      position: relative;
+    }
+    .incident {
+      border-radius: 20px;
+      padding: 22px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      display: grid;
+      gap: 10px;
+    }
+    .incident[data-resolved="true"] {
+      border-color: rgba(148, 163, 184, 0.12);
+      opacity: .95;
+    }
+    .incident[data-severity="major"] {
+      border-color: rgba(255, 107, 107, 0.35);
+      background: rgba(255, 107, 107, 0.08);
+    }
+    .incident[data-severity="minor"] {
+      border-color: rgba(255, 209, 102, 0.35);
+      background: rgba(255, 209, 102, 0.08);
+    }
+    .incident-meta {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .incident-footnote {
+      margin: 0;
+      color: var(--muted);
+      position: relative;
+      line-height: 1.35;
+    }
+  </style>
+</head>
+<body>
+  <div class="site-shell">
+    <section class="section-block">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Status</p>
+          <h1>Personal Meal Reminder</h1>
+        </div>
+        <a class="button secondary" href="../index.html">Back</a>
+      </div>
+      <p class="section-text">Public operational metrics and recent incident history. Data is static until a metrics pipeline is connected.</p>
+      <div class="metrics-grid" id="metrics"></div>
+    </section>
+
+    <section class="section-block" style="margin-top: 24px;">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Incidents</p>
+          <h2>Recent issues</h2>
+        </div>
+      </div>
+      <div class="page-grid" id="incidents"></div>
+    </section>
+  </div>
+
+  <script src="meal-config.js"></script>
+  <script>
+    const statusEl = document.getElementById("metrics");
+    const data = window.mealStatus;
+
+    const metrics = [
+      { label: "Health", value: data.status, footnote: data.summary, pill: true, health: data.health },
+      { label: "Uptime (30d)", value: data.uptime.percent + "%", footnote: "Downtime: " + data.uptime.last30Days },
+      { label: "API calls (24h)", value: data.api.callsLast24h.toLocaleString(), footnote: "Error rate: " + data.api.errorRate },
+      { label: "Requests (30d)", value: data.traffic.requestsLast30d.toLocaleString(), footnote: data.traffic.uniqueUsersLast30d + " unique users" },
+      { label: "P95 latency", value: data.api.p95Latency, footnote: "Rolling average" },
+      { label: "Last incident", value: data.uptime.lastIncident.replace("2026-", ""), footnote: "All incidents resolved" }
+    ];
+
+    statusEl.innerHTML = metrics.map((m) => {
+      const pill = m.pill
+        ? `<span class="status-pill" data-health="${m.health}">${m.value}</span><div class="metric-value">${m.value}</div>`
+        : `<div class="metric-value">${m.value}</div>`;
+      return `
+        <article class="metric-card">
+          <p class="metric-label">${m.label}</p>
+          ${pill}
+          <p class="metric-footnote">${m.footnote}</p>
+        </article>
+      `;
+    }).join("");
+
+    const incidentsEl = document.getElementById("incidents");
+    incidentsEl.innerHTML = data.incidents.map((i) => {
+      return `
+        <article class="incident" data-severity="${i.severity}" data-resolved="${String(i.resolved)}">
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:start;flex-wrap:wrap;">
+            <div>
+              <h3 style="margin:0;">${i.title}</h3>
+              <p class="metric-footnote">${i.date}</p>
+            </div>
+            <span class="status-pill" data-health="${i.resolved ? 'healthy' : 'degraded'}">
+              ${i.resolved ? 'Resolved' : 'Open'}
+            </span>
           </div>
-          <a class="button secondary" href="../index.html">Back</a>
-        </div>
-        <p class="detail-copy">
-          Static dashboard page for the Meals tool. No backend endpoints are deployed from this repository yet.
-        </p>
-        <div class="detail-section">
-          <h3>Status</h3>
-          <p class="detail-copy">Stub. Not deployed.</p>
-        </div>
-        <div class="detail-section">
-          <h3>Planned scope</h3>
-          <ul class="detail-list">
-            <li>Meals CRUD via PostgREST</li>
-            <li>Reminders triggered by Novu and web push</li>
-            <li>Shopping list tied to meal ingredients</li>
-          </ul>
-        </div>
-      </section>
-    </div>
-  </body>
+          <p class="incident-footnote">${i.detail}</p>
+        </article>
+      `;
+    }).join("");
+  </script>
+</body>
 </html>
