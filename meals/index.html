@@ -67,6 +67,92 @@
       position: relative;
       line-height: 1.35;
     }
+    .range-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0 12px;
+      flex-wrap: wrap;
+    }
+    .range-bar span {
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .range-options {
+      display: inline-flex;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .range-options button {
+      background: rgba(255, 255, 255, 0.03);
+      border: none;
+      color: var(--text);
+      padding: 6px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      font-family: inherit;
+    }
+    .range-options button:hover {
+      background: rgba(255, 255, 255, 0.07);
+    }
+    .range-options button.active {
+      background: var(--accent);
+      color: #1c1307;
+    }
+    .uptime-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 180px;
+      padding: 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow-x: auto;
+    }
+    .chart-bar-wrap {
+      flex: 1;
+      min-width: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .chart-bar {
+      width: 100%;
+      background: var(--accent);
+      border-radius: 4px 4px 0 0;
+      transition: height .2s ease;
+    }
+    .chart-label {
+      font-size: 0.66rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .chart-tooltip {
+      font-size: 0.7rem;
+      color: var(--text);
+      background: rgba(0,0,0,0.6);
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-top: 4px;
+      opacity: 0;
+      transition: opacity .12s ease;
+      position: absolute;
+      pointer-events: none;
+    }
+    .chart-bar-wrap {
+      position: relative;
+    }
+    .chart-bar-wrap:hover .chart-tooltip {
+      opacity: 1;
+    }
+    .uptime-section h3 {
+      margin: 0 0 10px;
+      font-family: "Fraunces", serif;
+      font-size: 1.1rem;
+    }
   </style>
 </head>
 <body>
@@ -81,6 +167,19 @@
       </div>
       <p class="section-text">Public operational metrics and recent incident history. Data is static until a metrics pipeline is connected.</p>
       <div class="metrics-grid" id="metrics"></div>
+
+      <div class="uptime-section">
+        <div class="range-bar">
+          <span>Time range:</span>
+          <div class="range-options" id="rangeOptions">
+            <button data-range="7">7d</button>
+            <button data-range="14">14d</button>
+            <button class="active" data-range="30">30d</button>
+          </div>
+        </div>
+        <h3>Uptime</h3>
+        <div class="uptime-chart" id="uptimeChart"></div>
+      </div>
     </section>
 
     <section class="section-block" style="margin-top: 24px;">
@@ -99,27 +198,68 @@
     const statusEl = document.getElementById("metrics");
     const data = window.mealStatus;
 
-    const metrics = [
-      { label: "Health", value: data.status, footnote: data.summary, pill: true, health: data.health },
-      { label: "Uptime (30d)", value: data.uptime.percent + "%", footnote: "Downtime: " + data.uptime.last30Days },
-      { label: "API calls (24h)", value: data.api.callsLast24h.toLocaleString(), footnote: "Error rate: " + data.api.errorRate },
-      { label: "Requests (30d)", value: data.traffic.requestsLast30d.toLocaleString(), footnote: data.traffic.uniqueUsersLast30d + " unique users" },
-      { label: "P95 latency", value: data.api.p95Latency, footnote: "Rolling average" },
-      { label: "Last incident", value: data.uptime.lastIncident.replace("2026-", ""), footnote: "All incidents resolved" }
-    ];
+    function getRangeData(range) {
+      const days = data.daily.slice(-range);
+      return {
+        uptime: days,
+        calls: days.reduce((sum, d) => sum + d.calls, 0),
+        requests: days.reduce((sum, d) => sum + d.requests, 0)
+      };
+    }
 
-    statusEl.innerHTML = metrics.map((m) => {
-      const pill = m.pill
-        ? `<span class="status-pill" data-health="${m.health}">${m.value}</span><div class="metric-value">${m.value}</div>`
-        : `<div class="metric-value">${m.value}</div>`;
-      return `
-        <article class="metric-card">
-          <p class="metric-label">${m.label}</p>
-          ${pill}
-          <p class="metric-footnote">${m.footnote}</p>
-        </article>
-      `;
-    }).join("");
+    function renderMetrics(range) {
+      const rangeData = getRangeData(range);
+      const metrics = [
+        { label: "Health", value: data.status, footnote: data.summary, pill: true, health: data.health },
+        { label: `API calls (${range}d)`, value: rangeData.calls.toLocaleString(), footnote: "Error rate: " + data.api.errorRate },
+        { label: `Requests (${range}d)`, value: rangeData.requests.toLocaleString(), footnote: data.traffic.uniqueUsersLast30d + " unique users" },
+        { label: "P95 latency", value: data.api.p95Latency, footnote: "Rolling average" }
+      ];
+
+      statusEl.innerHTML = metrics.map((m) => {
+        const pill = m.pill
+          ? `<span class="status-pill" data-health="${m.health}">${m.value}</span><div class="metric-value">${m.value}</div>`
+          : `<div class="metric-value">${m.value}</div>`;
+        return `
+          <article class="metric-card">
+            <p class="metric-label">${m.label}</p>
+            ${pill}
+            <p class="metric-footnote">${m.footnote}</p>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderChart(range) {
+      const rangeData = getRangeData(range);
+      const chartEl = document.getElementById("uptimeChart");
+      chartEl.innerHTML = rangeData.uptime.map((d) => {
+        const height = d.percent < 100 ? d.percent : 100;
+        return `
+          <div class="chart-bar-wrap">
+            <div class="chart-bar" style="height: ${height}%;" title="${d.date}: ${d.percent}%"></div>
+            <span class="chart-label">${d.date.slice(3)}</span>
+            <span class="chart-tooltip">${d.date}: ${d.percent}%</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function setRange(range) {
+      document.querySelectorAll("#rangeOptions button").forEach((btn) => {
+        btn.classList.toggle("active", Number(btn.dataset.range) === range);
+      });
+      renderMetrics(range);
+      renderChart(range);
+    }
+
+    document.getElementById("rangeOptions").addEventListener("click", (e) => {
+      if (e.target.tagName === "BUTTON") {
+        setRange(Number(e.target.dataset.range));
+      }
+    });
+
+    setRange(30);
 
     const incidentsEl = document.getElementById("incidents");
     incidentsEl.innerHTML = data.incidents.map((i) => {
