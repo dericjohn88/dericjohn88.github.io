@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Deric John | API Hosting</title>
-  <meta name="description" content="Dark-mode GitHub Pages dashboard for Deric John's hosted tools, public status view, and Firebase-backed owner panel.">
+  <meta name="description" content="Dashboard for Deric John's hosted tools and public API status.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,14 +15,14 @@
     <header class="hero">
       <div class="hero-copy">
         <div class="hero-topline">
-          <p class="eyebrow" id="welcomeEyebrow">Welcome guest</p>
+          <p class="eyebrow" id="welcomeEyebrow">Developer dashboard</p>
         </div>
         <h1>Deric's Application Playground</h1>
-        <p class="hero-text">This site is intended to be a landing zone for my personal applications to check the status and statistics of my personal apps. These applications may be opened up later for public use, but for now, they are just ideas.</p>
+        <p class="hero-text">
+          Browse project status and open public pages for each hosted tool.
+        </p>
         <div class="hero-links">
           <a class="button primary" href="#toolGrid">Browse applications</a>
-          <button class="button secondary" id="signInButton" type="button">Sign in with Google</button>
-          <button class="button ghost" id="signOutButton" type="button" hidden>Sign out</button>
         </div>
       </div>
     </header>
@@ -34,7 +34,7 @@
             <p class="eyebrow">Overview</p>
             <h2>Hosted tools</h2>
           </div>
-          <p class="section-text">This panel provides a snapshot of the total tools/applications hosted, the health of each tool, and recent activity metrics.</p>
+          <p class="section-text">Total project count, operational status, and in-progress work across the playground.</p>
         </div>
         <div class="stats-grid" id="statsGrid"></div>
       </section>
@@ -45,7 +45,7 @@
             <p class="eyebrow">Applications</p>
             <h2>Current tools</h2>
           </div>
-          <p class="section-text">Select an application to inspect its public status. Owner-only details unlock after Google sign-in.</p>
+          <p class="section-text">Select an application to inspect its public status.</p>
         </div>
         <div class="tools-layout">
           <div class="tool-grid" id="toolGrid"></div>
@@ -57,10 +57,10 @@
   </div>
 
   <noscript>
-    <div class="noscript-banner">This landing page uses JavaScript to render tool cards and the owner preview panel.</div>
+    <div class="noscript-banner">This landing page uses JavaScript to render tool cards and the detail panel.</div>
   </noscript>
 
   <script src="site-config.js"></script>
-  <script type="module" src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

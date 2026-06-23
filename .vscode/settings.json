@@ -1,0 +1,9 @@
+{
+  "continue.enableConsole": true,
+  "continue.enableQuickActions": true,
+  "github.copilot.chat.cloudAgent.enabled": false,
+  "chat.agentsHandoffTip.mode": "default",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "continue.disableQuickFix": false,
+  "continue.pauseCodebaseIndexOnStart": true
+}

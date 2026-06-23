@@ -1,65 +1,64 @@
 window.siteConfig = {
-  firebase: {
-    apiKey: "AIzaSyDnTU6aFtglOzEWbRDANA2BxDRPdizmW_E",
-    authDomain: "dericjohn88-9f1fd.firebaseapp.com",
-    projectId: "dericjohn88-9f1fd",
-    storageBucket: "dericjohn88-9f1fd.firebasestorage.app",
-    messagingSenderId: "842234641604",
-    appId: "1:842234641604:web:c25d1e34c6e0d6f7d31d91"
-  },
-  owner: {
-    previewLabel: "Owner preview mode",
-    previewSummary: "This preview only reveals which details are private. It does not expose live credentials, secrets, or backend diagnostics.",
-    publicSummary: "Private diagnostics are hidden by default. Use the preview to verify the split without exposing internal data."
-  },
   tools: [
     {
       slug: "meals",
-      name: "Meals API",
+      name: "Personal Meal Reminder",
       health: "healthy",
       status: "Operational",
-      publicRoute: "/api/meals",
-      publicSummary: "Consumer-safe meal search and routing details for food-focused tools.",
-      activity: "182 requests today",
-      uptime: "99.98% over 30d",
-      publicPath: "./meals/index.html",
-      privateSurface: [
-        "Provider quota monitoring",
-        "Latency thresholds and alerts",
-        "Trace correlation for failed lookups"
-      ]
+      publicRoute: "/meals",
+      publicSummary:
+        "Meal planning and shopping list management with push reminders via Novu.",
+      activity: "PostgREST-backed CRUD",
+      uptime: "In development",
+      publicPath: "./meals/index.html"
     },
     {
       slug: "trades",
-      name: "Trades API",
+      name: "Autotrader",
       health: "healthy",
       status: "Operational",
-      publicRoute: "/api/trades",
-      publicSummary: "Trade request expectations, validation boundaries, and public response behavior.",
-      activity: "96 requests today",
-      uptime: "99.95% over 30d",
-      publicPath: "./trades/index.html",
-      privateSurface: [
-        "Broker dependency health",
-        "Order execution audit trails",
-        "Rate-limit anomaly reporting"
-      ]
+      publicRoute: "/trades",
+      publicSummary:
+        "Automated trade execution pipeline with broker integration and order audit trails.",
+      activity: "Broker health checks + execution logging",
+      uptime: "In development",
+      publicPath: "./autotrader/index.html"
     },
     {
       slug: "travel",
-      name: "Travel API",
-      health: "degraded",
+      name: "Travel Mobile App",
+      health: "monitoring",
       status: "Monitoring",
-      publicRoute: "/api/travel",
-      publicSummary: "Travel lookup routing with a clean public surface and separate operational oversight.",
-      activity: "41 requests today",
-      uptime: "99.32% over 30d",
-      publicPath: "./travel/index.html",
-      privateSurface: [
-        "Supplier timeout diagnostics",
-        "Caching effectiveness metrics",
-        "Dependency recovery runbooks"
-      ]
+      publicRoute: "/travel",
+      publicSummary:
+        "Travel lookup and supplier routing with caching, timeout diagnostics, and recovery runbooks.",
+      activity: "Supplier timeout monitoring",
+      uptime: "In development",
+      publicPath: "./travel/index.html"
+    },
+    {
+      slug: "f3-workout-randomizer",
+      name: "F3 Workout Randomizer",
+      health: "healthy",
+      status: "Operational",
+      publicRoute: "/f3-workout-randomizer",
+      publicSummary:
+        "Randomized F3 workout generator with exercise filters, history, and progress tracking.",
+      activity: "Workout generation + history",
+      uptime: "In development",
+      publicPath: "./f3-workout-randomizer/index.html"
+    },
+    {
+      slug: "financial-test-app",
+      name: "Financial Test App",
+      health: "healthy",
+      status: "Operational",
+      publicRoute: "/financial-test-app",
+      publicSummary:
+        "Financial model testing framework with data ingestion, validation, and report export.",
+      activity: "Model validation + reporting",
+      uptime: "In development",
+      publicPath: "./financial-test-app/index.html"
     }
   ]
 };

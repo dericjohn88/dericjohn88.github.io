@@ -30,8 +30,16 @@ body {
   font-family: "Manrope", sans-serif;
   color: var(--text);
   background:
-    radial-gradient(circle at top left, rgba(255, 159, 28, 0.18), transparent 28%),
-    radial-gradient(circle at right center, rgba(71, 215, 172, 0.16), transparent 24%),
+    radial-gradient(
+      circle at top left,
+      rgba(255, 159, 28, 0.18),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at right center,
+      rgba(71, 215, 172, 0.16),
+      transparent 24%
+    ),
     linear-gradient(145deg, #06101b 0%, #0b1523 50%, #10253e 100%);
 }
 
@@ -40,7 +48,8 @@ body::before {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
   background-size: 36px 36px;
   mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
@@ -82,19 +91,6 @@ button {
   overflow: hidden;
   border-radius: 28px;
   padding: 48px;
-}
-
-.hero-copy::after {
-  content: "PUBLIC / PRIVATE";
-  position: absolute;
-  right: -20px;
-  bottom: 20px;
-  pointer-events: none;
-  font-family: "Fraunces", serif;
-  font-size: clamp(2.8rem, 8vw, 6rem);
-  line-height: 0.9;
-  color: rgba(255, 255, 255, 0.05);
-  letter-spacing: 0.08em;
 }
 
 .hero-topline {
@@ -189,7 +185,10 @@ h2 {
   border: 1px solid transparent;
   text-decoration: none;
   cursor: pointer;
-  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
 }
 
 .button:hover,
@@ -309,7 +308,10 @@ h2 {
   gap: 14px;
   text-align: left;
   cursor: pointer;
-  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
 }
 
 .tool-card:hover,
