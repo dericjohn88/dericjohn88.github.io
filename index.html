@@ -1,66 +1,110 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Deric John | API Hosting</title>
-  <meta name="description" content="Dashboard for Deric John's hosted tools and public API status.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <div class="site-shell">
-    <header class="hero">
-      <div class="hero-copy">
-        <div class="hero-topline">
-          <p class="eyebrow" id="welcomeEyebrow">Developer dashboard</p>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Deric John | API Hosting</title>
+    <meta
+      name="description"
+      content="Dashboard for Deric John's hosted tools and public API status."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <div class="hero-topline">
+            <p class="eyebrow" id="welcomeEyebrow">Open dashboard</p>
+          </div>
+          <h1>Deric's Application Playground</h1>
+          <p class="hero-text">
+            Browse project status and open public pages for a short description
+            about each of the hosted tools.
+          </p>
+          <div class="hero-auth">
+            <div class="owner-actions">
+              <button id="googleSignInBtn" class="button primary" type="button">
+                Sign in with Google
+              </button>
+              <button id="googleSignOutBtn" class="button secondary" type="button" hidden>
+                Sign out
+              </button>
+            </div>
+            <p id="authStatus" class="owner-note">
+              Public access is enabled. Restricted details unlock for your approved Google account.
+            </p>
+          </div>
+          <div class="hero-links">
+            <a class="button primary" href="#toolGrid">Browse applications</a>
+          </div>
         </div>
-        <h1>Deric's Application Playground</h1>
-        <p class="hero-text">
-          Browse project status and open public pages for each hosted tool.
-        </p>
-        <div class="hero-links">
-          <a class="button primary" href="#toolGrid">Browse applications</a>
-        </div>
+      </header>
+
+      <main class="page-grid">
+        <section class="section-block">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Overview</p>
+              <h2>Tools/applications currently in development or planned.</h2>
+            </div>
+            <p class="section-text">
+              Total project count, operational status, and in-progress work
+              across the playground.
+            </p>
+          </div>
+          <div class="stats-grid" id="statsGrid"></div>
+        </section>
+
+        <section class="section-block tools-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Applications</p>
+              <h2>Current tools</h2>
+            </div>
+            <p class="section-text">
+              Select an application to inspect public information or updated
+              status of the application.
+            </p>
+          </div>
+          <div class="tools-layout">
+            <div class="tool-grid" id="toolGrid"></div>
+            <aside
+              class="detail-panel"
+              id="detailPanel"
+              aria-live="polite"
+            ></aside>
+          </div>
+        </section>
+
+        <section class="section-block auth-required" id="ownerOnlySection" hidden>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Owner access</p>
+              <h2>Private project notes</h2>
+            </div>
+          </div>
+          <div id="ownerOnlyContent"></div>
+        </section>
+      </main>
+    </div>
+
+    <noscript>
+      <div class="noscript-banner">
+        This landing page uses JavaScript to render tool cards and the detail
+        panel.
       </div>
-    </header>
+    </noscript>
 
-    <main class="page-grid">
-      <section class="section-block">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Overview</p>
-            <h2>Hosted tools</h2>
-          </div>
-          <p class="section-text">Total project count, operational status, and in-progress work across the playground.</p>
-        </div>
-        <div class="stats-grid" id="statsGrid"></div>
-      </section>
-
-      <section class="section-block tools-section">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Applications</p>
-            <h2>Current tools</h2>
-          </div>
-          <p class="section-text">Select an application to inspect its public status.</p>
-        </div>
-        <div class="tools-layout">
-          <div class="tool-grid" id="toolGrid"></div>
-          <aside class="detail-panel" id="detailPanel" aria-live="polite"></aside>
-        </div>
-      </section>
-
-    </main>
-  </div>
-
-  <noscript>
-    <div class="noscript-banner">This landing page uses JavaScript to render tool cards and the detail panel.</div>
-  </noscript>
-
-  <script src="site-config.js"></script>
-  <script src="app.js"></script>
-</body>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="site-config.js"></script>
+    <script src="app.js"></script>
+  </body>
 </html>

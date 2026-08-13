@@ -1,4 +1,4 @@
-const config = window.siteConfig;
+const config = window.siteConfig || { tools: [] };
 
 if (!config || !Array.isArray(config.tools) || config.tools.length === 0) {
   throw new Error("siteConfig.tools is required to render the landing page.");
@@ -8,9 +8,26 @@ const toolGrid = document.getElementById("toolGrid");
 const detailPanel = document.getElementById("detailPanel");
 const statsGrid = document.getElementById("statsGrid");
 const welcomeEyebrow = document.getElementById("welcomeEyebrow");
+const authStatusEl = document.getElementById("authStatus");
+const googleSignInBtn = document.getElementById("googleSignInBtn");
+const googleSignOutBtn = document.getElementById("googleSignOutBtn");
+const ownerOnlySection = document.getElementById("ownerOnlySection");
+const ownerOnlyContent = document.getElementById("ownerOnlyContent");
 
 let selectedToolSlug = config.tools[0].slug;
-let currentDetailOpen = false;
+let currentUser = null;
+
+const allowedEmails = (config.owner && Array.isArray(config.owner.allowedEmails)
+  ? config.owner.allowedEmails
+  : []).map((email) => email.trim().toLowerCase());
+
+function isOwnerEmail(email) {
+  return typeof email === "string" && allowedEmails.includes(email.trim().toLowerCase());
+}
+
+function isOwnerLoggedIn() {
+  return Boolean(currentUser) && isOwnerEmail(currentUser.email);
+}
 
 function getStats(tools) {
   const healthyCount = tools.filter((tool) => tool.health === "healthy").length;
@@ -89,7 +106,6 @@ function renderTools() {
 
     button.addEventListener("click", () => {
       selectedToolSlug = tool.slug;
-      currentDetailOpen = true;
       renderTools();
       renderDetail();
     });
@@ -98,10 +114,29 @@ function renderTools() {
   });
 }
 
+function renderPrivateBullets(tool) {
+  if (!Array.isArray(tool.privateBullets) || tool.privateBullets.length === 0) {
+    return "";
+  }
+
+  const items = tool.privateBullets
+    .map((item) => `<li>${item}</li>`)
+    .join("");
+
+  return `<ul class="detail-list">${items}</ul>`;
+}
+
 function renderDetail() {
-  const tool =
-    config.tools.find((entry) => entry.slug === selectedToolSlug) ??
-    config.tools[0];
+  const tool = config.tools.find((entry) => entry.slug === selectedToolSlug) ?? config.tools[0];
+  const privateBlock = isOwnerLoggedIn() && tool.privateSummary
+    ? `
+      <div class="detail-section">
+        <h3>Owner-only notes</h3>
+        <p class="detail-copy">${tool.privateSummary}</p>
+        ${renderPrivateBullets(tool)}
+      </div>
+    `
+    : "";
 
   detailPanel.innerHTML = `
     <div class="detail-header">
@@ -119,11 +154,51 @@ function renderDetail() {
       <p class="detail-copy">${tool.publicRoute}</p>
       <p class="detail-copy">${tool.activity} · ${tool.uptime}</p>
     </div>
+    ${privateBlock}
     <div class="detail-links">
       <a class="detail-link" href="${tool.publicPath}">
         <strong>Open public page</strong>
         <span>View the public-facing documentation and status split for ${tool.name}.</span>
       </a>
+    </div>
+  `;
+}
+
+function renderPrivateContent() {
+  if (!ownerOnlySection || !ownerOnlyContent) {
+    return;
+  }
+
+  if (!isOwnerLoggedIn()) {
+    ownerOnlySection.hidden = true;
+    ownerOnlyContent.innerHTML = "";
+    return;
+  }
+
+  ownerOnlySection.hidden = false;
+
+  const privateCards = config.tools
+    .filter((tool) => tool.privateSummary)
+    .map(
+      (tool) => `
+        <article class="owner-card">
+          <div class="detail-header">
+            <div>
+              <span class="detail-badge">${tool.slug}</span>
+              <h3>${tool.name}</h3>
+            </div>
+          </div>
+          <p class="detail-copy">${tool.privateSummary}</p>
+          ${renderPrivateBullets(tool)}
+        </article>
+      `
+    )
+    .join("");
+
+  ownerOnlyContent.innerHTML = `
+    <p class="owner-note">${config.owner && config.owner.privateIntro ? config.owner.privateIntro : "This content is restricted to the approved owner account."}</p>
+    <div class="owner-grid">
+      ${privateCards || '<p class="detail-copy">No private summaries configured yet.</p>'}
     </div>
   `;
 }
@@ -139,6 +214,84 @@ function renderEmptyState() {
   `;
 }
 
+function updateAuthUi() {
+  if (welcomeEyebrow) {
+    welcomeEyebrow.textContent = isOwnerLoggedIn() ? "Owner dashboard" : "Open dashboard";
+  }
+
+  if (!authStatusEl || !googleSignInBtn || !googleSignOutBtn) {
+    return;
+  }
+
+  if (!window.firebase || !window.firebase.auth) {
+    authStatusEl.textContent = "Firebase Auth is not configured yet. Add your values in site-config.js to enable Google sign-in.";
+    googleSignInBtn.disabled = true;
+    googleSignOutBtn.hidden = true;
+    return;
+  }
+
+  if (currentUser && isOwnerLoggedIn()) {
+    authStatusEl.textContent = `Signed in as ${currentUser.email}. Owner-only content is unlocked.`;
+    googleSignInBtn.hidden = true;
+    googleSignOutBtn.hidden = false;
+  } else if (currentUser) {
+    authStatusEl.textContent = `Signed in as ${currentUser.email}, but this account is not approved for private access.`;
+    googleSignInBtn.hidden = true;
+    googleSignOutBtn.hidden = false;
+  } else {
+    authStatusEl.textContent = config.owner && config.owner.accessMessage
+      ? config.owner.accessMessage
+      : "Public access is enabled. Restricted details unlock for your approved Google account.";
+    googleSignInBtn.hidden = false;
+    googleSignOutBtn.hidden = true;
+  }
+}
+
+function initializeAuth() {
+  if (!window.firebase || !window.firebase.auth) {
+    return;
+  }
+
+  const auth = window.firebase.auth();
+  const provider = new window.firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+
+  auth.onAuthStateChanged((user) => {
+    currentUser = user;
+    updateAuthUi();
+    renderPrivateContent();
+    renderDetail();
+  });
+
+  googleSignInBtn.addEventListener("click", async () => {
+    try {
+      await auth.signInWithPopup(provider);
+    } catch (error) {
+      if (error && error.code === "auth/popup-blocked") {
+        authStatusEl.textContent = "Popup was blocked. Please allow pop-ups and try sign-in again.";
+        return;
+      }
+
+      authStatusEl.textContent = "Google sign-in failed. Please try again or confirm Firebase Auth is configured.";
+    }
+  });
+
+  googleSignOutBtn.addEventListener("click", async () => {
+    try {
+      await auth.signOut();
+    } catch (error) {
+      authStatusEl.textContent = "Unable to sign out. Please try again.";
+    }
+  });
+}
+
+if (welcomeEyebrow) {
+  welcomeEyebrow.textContent = isOwnerLoggedIn() ? "Owner dashboard" : "Open dashboard";
+}
+
 renderStats();
 renderTools();
 renderEmptyState();
+renderPrivateContent();
+updateAuthUi();
+initializeAuth();
