@@ -1,4 +1,6 @@
 const STORAGE_KEY = "private-bible-plan-v1";
+const DAY_MIN = "2026-01-01";
+const DAY_MAX = "2026-12-31";
 const BOOKS = [
   "Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth","1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther","Job","Psalms","Proverbs","Ecclesiastes","Song of Solomon","Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi",
   "Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter","1 John","2 John","3 John","Jude","Revelation"
@@ -40,7 +42,8 @@ const PLAN_TEMPLATES = {
 const SAMPLE_PLAN = {
   id: "sample-plan",
   name: "One-Year Bible Reading Plan",
-  startDate: new Date().toISOString().slice(0, 10),
+  startDate: "2026-01-01",
+  readingDate: "2026-01-01",
   template: "plan1",
   entries: PLAN_TEMPLATES.plan1.defaults.map((entry, index) => ({
     id: `sample-entry-${index + 1}`,
@@ -64,6 +67,7 @@ const toVerseInput = document.getElementById("toVerseInput");
 const noteInput = document.getElementById("noteInput");
 const planNameInput = document.getElementById("planNameInput");
 const planDateInput = document.getElementById("planDateInput");
+const readingDateInput = document.getElementById("readingDateInput");
 const planTemplateSelect = document.getElementById("planTemplateSelect");
 const planForm = document.getElementById("planForm");
 const planList = document.getElementById("planList");
@@ -192,18 +196,76 @@ function renderProgress() {
   });
 }
 
+function getDayOffset(dateString) {
+  const start = new Date(`${DAY_MIN}T00:00:00`);
+  const current = new Date(`${dateString}T00:00:00`);
+  const diff = current.getTime() - start.getTime();
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
+}
+
+function getQueuedEntriesFromDate(plan, dateString) {
+  if (!plan || !dateString) {
+    return [];
+  }
+
+  const dayIndex = Math.max(0, getDayOffset(dateString));
+  const template = PLAN_TEMPLATES[plan.template || "plan1"] || PLAN_TEMPLATES.plan1;
+
+  if (dayIndex >= 365) {
+    return [];
+  }
+
+  const dailyBlocks = [
+    { book: "Genesis", chapter: 1, fromVerse: 1, toVerse: 25, note: "Creation and the beginning of the covenant story." },
+    { book: "Matthew", chapter: 1, fromVerse: 1, toVerse: 18, note: "The incarnation and the promise fulfilled." },
+    { book: "Psalms", chapter: 1, fromVerse: 1, toVerse: 6, note: "Reflect on the righteous life." },
+    { book: "Proverbs", chapter: 1, fromVerse: 1, toVerse: 9, note: "Wisdom for everyday decisions." }
+  ];
+
+  if (plan.template === "plan2") {
+    const rotation = [
+      { book: "Romans", chapter: 1, fromVerse: 1, toVerse: 17, note: "Epistles section." },
+      { book: "Genesis", chapter: 1, fromVerse: 1, toVerse: 20, note: "Law section." },
+      { book: "Joshua", chapter: 1, fromVerse: 1, toVerse: 18, note: "History section." },
+      { book: "Psalms", chapter: 23, fromVerse: 1, toVerse: 6, note: "Psalms section." },
+      { book: "Job", chapter: 1, fromVerse: 1, toVerse: 12, note: "Poetry section." },
+      { book: "Isaiah", chapter: 1, fromVerse: 1, toVerse: 20, note: "Prophecy section." },
+      { book: "Matthew", chapter: 1, fromVerse: 1, toVerse: 18, note: "Gospels section." }
+    ];
+    return [rotation[dayIndex % rotation.length]];
+  }
+
+  if (plan.template === "plan3") {
+    const wideRead = [
+      { book: "Genesis", chapter: 1, fromVerse: 1, toVerse: 25, note: "Continue the cover-to-cover reading plan." },
+      { book: "Genesis", chapter: 2, fromVerse: 1, toVerse: 25, note: "Continue the beginning of creation." },
+      { book: "Genesis", chapter: 3, fromVerse: 1, toVerse: 24, note: "Reflect on the fall and promise." },
+      { book: "Matthew", chapter: 1, fromVerse: 1, toVerse: 25, note: "The promised King arrives." }
+    ];
+    return [wideRead[dayIndex % wideRead.length]];
+  }
+
+  return [dailyBlocks[dayIndex % dailyBlocks.length]];
+}
+
 function renderSelectedPassage() {
   const plan = getCurrentPlan();
-  const selection = plan?.entries.find((entry) => entry.id === state.selectedPassageId) || plan?.entries[0];
+  const selectionDate = readingDateInput.value || plan?.readingDate || plan?.startDate || DAY_MIN;
+  const queued = getQueuedEntriesFromDate(plan, selectionDate);
+  const selected = queued[0] || plan?.entries.find((entry) => entry.id === state.selectedPassageId) || plan?.entries[0];
 
-  if (!selection) {
+  if (!selected) {
     selectedPassageTitle.textContent = "No passage selected";
     selectedPassageText.textContent = "Choose a reading block to begin.";
     return;
   }
 
-  selectedPassageTitle.textContent = `${selection.book} ${selection.chapter}:${selection.fromVerse}-${selection.toVerse}`;
-  selectedPassageText.textContent = getPassageTemplate(selection);
+  const passage = selected.book
+    ? selected
+    : { book: selected.book, chapter: selected.chapter, fromVerse: selected.fromVerse, toVerse: selected.toVerse, note: selected.note };
+
+  selectedPassageTitle.textContent = `${passage.book} ${passage.chapter}:${passage.fromVerse}-${passage.toVerse}`;
+  selectedPassageText.textContent = getPassageTemplate(passage);
 }
 
 function renderPlanMeta() {
@@ -216,7 +278,10 @@ function renderPlanMeta() {
   }
 
   planNameInput.value = plan.name;
-  planDateInput.value = plan.startDate || new Date().toISOString().slice(0, 10);
+  planDateInput.value = plan.startDate || DAY_MIN;
+  readingDateInput.value = plan.readingDate || DAY_MIN;
+  readingDateInput.min = DAY_MIN;
+  readingDateInput.max = DAY_MAX;
   planTemplateSelect.value = plan.template || "plan1";
 }
 
@@ -231,7 +296,8 @@ function hydrateNewPlanForm() {
   const plan = getCurrentPlan();
   if (!plan) return;
   planNameInput.value = plan.name;
-  planDateInput.value = plan.startDate || new Date().toISOString().slice(0, 10);
+  planDateInput.value = plan.startDate || DAY_MIN;
+  readingDateInput.value = plan.readingDate || DAY_MIN;
   planTemplateSelect.value = plan.template || "plan1";
 }
 
@@ -255,7 +321,9 @@ function speakCurrentPassage() {
   }
 
   const plan = getCurrentPlan();
-  const selected = plan?.entries.find((entry) => entry.id === state.selectedPassageId) || plan?.entries[0];
+  const selectionDate = readingDateInput.value || plan?.readingDate || plan?.startDate || DAY_MIN;
+  const queued = getQueuedEntriesFromDate(plan, selectionDate);
+  const selected = queued[0] || plan?.entries.find((entry) => entry.id === state.selectedPassageId) || plan?.entries[0];
   if (!selected) return;
 
   if (state.speech) {
@@ -276,11 +344,20 @@ function speakCurrentPassage() {
   window.speechSynthesis.speak(utterance);
 }
 
+readingDateInput.addEventListener("change", () => {
+  const plan = getCurrentPlan();
+  if (!plan) return;
+  plan.readingDate = readingDateInput.value || DAY_MIN;
+  savePlans();
+  renderAll();
+});
+
 function resetPlan() {
   const plan = getCurrentPlan();
   if (!plan) return;
   plan.entries = [];
-  plan.startDate = new Date().toISOString().slice(0, 10);
+  plan.startDate = DAY_MIN;
+  plan.readingDate = DAY_MIN;
   savePlans();
   renderAll();
 }
@@ -291,7 +368,8 @@ function addNewPlan() {
   const plan = {
     id: createPlanId(),
     name: `${template.label.replace(" – ", " ")}`,
-    startDate: new Date().toISOString().slice(0, 10),
+    startDate: DAY_MIN,
+    readingDate: DAY_MIN,
     template: templateKey,
     entries: template.defaults.map((entry, index) => ({
       id: `template-${templateKey}-${index + 1}`,
@@ -328,7 +406,8 @@ planForm.addEventListener("submit", (event) => {
   };
 
   plan.name = planNameInput.value.trim() || plan.name;
-  plan.startDate = planDateInput.value || plan.startDate;
+  plan.startDate = planDateInput.value || plan.startDate || DAY_MIN;
+  plan.readingDate = readingDateInput.value || plan.readingDate || DAY_MIN;
   plan.template = planTemplateSelect.value || plan.template || "plan1";
   plan.entries.push(entry);
   state.selectedPassageId = entry.id;
@@ -341,6 +420,7 @@ planForm.addEventListener("submit", (event) => {
   toVerseInput.value = 10;
   noteInput.value = "";
   planTemplateSelect.value = plan.template || "plan1";
+  readingDateInput.value = plan.readingDate || DAY_MIN;
 });
 
 clearPlanBtn.addEventListener("click", resetPlan);
@@ -368,6 +448,10 @@ function initialize() {
   hydrateNewPlanForm();
   renderAll();
   populateVoices();
+
+  if (!readingDateInput.value) {
+    readingDateInput.value = DAY_MIN;
+  }
 }
 
 initialize();
