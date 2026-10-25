@@ -33,7 +33,7 @@
         <section class="panel main-panel">
           <div class="panel-header">
             <div>
-              <p class="eyebrow subtle">Daily rhythm</p>
+              <p class="eyebrow subtle">Rose Publishing</p>
               <h2 id="activePlanTitle">Loading plan…</h2>
             </div>
             <div class="status-pill" id="planStatus">Offline</div>
@@ -43,11 +43,22 @@
             <div class="field-grid">
               <label>
                 Plan name
-                <input id="planNameInput" name="planName" type="text" placeholder="Example: Daily Gospel Reading" />
+                <input id="planNameInput" name="planName" type="text" placeholder="Example: One-Year Bible Reading Plan" />
               </label>
               <label>
                 Start date
                 <input id="planDateInput" name="planDate" type="date" />
+              </label>
+            </div>
+
+            <div class="field-grid single">
+              <label>
+                Plan type
+                <select id="planTemplateSelect" name="planType">
+                  <option value="plan1">Plan 1 – Blended Daily Reading</option>
+                  <option value="plan2">Plan 2 – Seven-Section Rotation</option>
+                  <option value="plan3">Plan 3 – Cover-to-Cover Order</option>
+                </select>
               </label>
             </div>
 

@@ -4,14 +4,49 @@ const BOOKS = [
   "Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter","1 John","2 John","3 John","Jude","Revelation"
 ];
 
+const PLAN_TEMPLATES = {
+  plan1: {
+    label: "Plan 1 – Blended Daily Reading",
+    summary: "Read a bit from the Old Testament, New Testament, Psalms, and Proverbs each day.",
+    defaults: [
+      { book: "Genesis", chapter: 1, fromVerse: 1, toVerse: 25, note: "Read the opening creation account and reflect on God's order." },
+      { book: "Matthew", chapter: 1, fromVerse: 1, toVerse: 18, note: "Trace Christ's genealogy and the arrival of the promised King." },
+      { book: "Psalms", chapter: 1, fromVerse: 1, toVerse: 6, note: "Pray through the Psalm and meditate on wise living." },
+      { book: "Proverbs", chapter: 1, fromVerse: 1, toVerse: 9, note: "Capture the principles of wisdom for the day." }
+    ]
+  },
+  plan2: {
+    label: "Plan 2 – Seven-Section Rotation",
+    summary: "Rotate through the Law, History, Psalms, Poetry, Prophecy, Gospels, and Epistles by day.",
+    defaults: [
+      { book: "Romans", chapter: 1, fromVerse: 1, toVerse: 17, note: "Begin the epistles section with the gospel's revelation." },
+      { book: "Genesis", chapter: 1, fromVerse: 1, toVerse: 20, note: "Move through the Law and reflect on creation and covenant." },
+      { book: "Joshua", chapter: 1, fromVerse: 1, toVerse: 18, note: "Read the history section and meditate on courage in obedience." },
+      { book: "Psalms", chapter: 23, fromVerse: 1, toVerse: 6, note: "Let the psalms guide your heart into trust and peace." }
+    ]
+  },
+  plan3: {
+    label: "Plan 3 – Cover-to-Cover Order",
+    summary: "Read straight through the Bible from Genesis to Revelation.",
+    defaults: [
+      { book: "Genesis", chapter: 1, fromVerse: 1, toVerse: 25, note: "Begin at the beginning and mark the creation narrative." },
+      { book: "Genesis", chapter: 2, fromVerse: 1, toVerse: 25, note: "Consider the harmony of God's design and relationship." },
+      { book: "Genesis", chapter: 3, fromVerse: 1, toVerse: 24, note: "Reflect on sin, consequence, and the promise of redemption." },
+      { book: "Matthew", chapter: 1, fromVerse: 1, toVerse: 25, note: "Track the fulfillment of the covenant promise in the gospel." }
+    ]
+  }
+};
+
 const SAMPLE_PLAN = {
   id: "sample-plan",
-  name: "Daily Gospel Reading",
+  name: "One-Year Bible Reading Plan",
   startDate: new Date().toISOString().slice(0, 10),
-  entries: [
-    { id: "e1", book: "John", chapter: 1, fromVerse: 1, toVerse: 18, note: "Read slowly and reflect on the Word becoming flesh." },
-    { id: "e2", book: "Psalm", chapter: 23, fromVerse: 1, toVerse: 6, note: "Meditate on shepherd imagery and trust." }
-  ]
+  template: "plan1",
+  entries: PLAN_TEMPLATES.plan1.defaults.map((entry, index) => ({
+    id: `sample-entry-${index + 1}`,
+    ...entry,
+    complete: false
+  }))
 };
 
 const state = {
@@ -29,6 +64,7 @@ const toVerseInput = document.getElementById("toVerseInput");
 const noteInput = document.getElementById("noteInput");
 const planNameInput = document.getElementById("planNameInput");
 const planDateInput = document.getElementById("planDateInput");
+const planTemplateSelect = document.getElementById("planTemplateSelect");
 const planForm = document.getElementById("planForm");
 const planList = document.getElementById("planList");
 const activePlanTitle = document.getElementById("activePlanTitle");
@@ -102,7 +138,7 @@ function renderPlans() {
     .map((plan) => `
       <button type="button" class="plan-item ${plan.id === state.currentPlanId ? "active" : ""}" data-plan-id="${plan.id}">
         <strong>${plan.name}</strong>
-        <span>${plan.entries.length} reading blocks · ${plan.startDate}</span>
+        <span>${plan.template ? PLAN_TEMPLATES[plan.template]?.label || "Custom" : "Custom"} · ${plan.entries.length} reading blocks</span>
       </button>
     `)
     .join("");
@@ -181,6 +217,7 @@ function renderPlanMeta() {
 
   planNameInput.value = plan.name;
   planDateInput.value = plan.startDate || new Date().toISOString().slice(0, 10);
+  planTemplateSelect.value = plan.template || "plan1";
 }
 
 function renderAll() {
@@ -195,6 +232,7 @@ function hydrateNewPlanForm() {
   if (!plan) return;
   planNameInput.value = plan.name;
   planDateInput.value = plan.startDate || new Date().toISOString().slice(0, 10);
+  planTemplateSelect.value = plan.template || "plan1";
 }
 
 function populateVoices() {
@@ -248,15 +286,23 @@ function resetPlan() {
 }
 
 function addNewPlan() {
+  const templateKey = planTemplateSelect.value || "plan1";
+  const template = PLAN_TEMPLATES[templateKey] || PLAN_TEMPLATES.plan1;
   const plan = {
     id: createPlanId(),
-    name: `Plan ${state.plans.length + 1}`,
+    name: `${template.label.replace(" – ", " ")}`,
     startDate: new Date().toISOString().slice(0, 10),
-    entries: []
+    template: templateKey,
+    entries: template.defaults.map((entry, index) => ({
+      id: `template-${templateKey}-${index + 1}`,
+      ...entry,
+      complete: false
+    }))
   };
   state.plans.push(plan);
   state.currentPlanId = plan.id;
-  state.selectedPassageId = null;
+  state.selectedPassageId = plan.entries[0]?.id || null;
+  savePlans();
   renderAll();
   hydrateNewPlanForm();
 }
@@ -283,6 +329,7 @@ planForm.addEventListener("submit", (event) => {
 
   plan.name = planNameInput.value.trim() || plan.name;
   plan.startDate = planDateInput.value || plan.startDate;
+  plan.template = planTemplateSelect.value || plan.template || "plan1";
   plan.entries.push(entry);
   state.selectedPassageId = entry.id;
   savePlans();
@@ -293,6 +340,7 @@ planForm.addEventListener("submit", (event) => {
   fromVerseInput.value = 1;
   toVerseInput.value = 10;
   noteInput.value = "";
+  planTemplateSelect.value = plan.template || "plan1";
 });
 
 clearPlanBtn.addEventListener("click", resetPlan);
