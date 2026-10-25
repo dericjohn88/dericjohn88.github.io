@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Private Bible Reading Plan</title>
+    <meta
+      name="description"
+      content="Local-only Bible reading planner with custom plans and text-to-speech audio."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Personal study</p>
+          <h1>Private Bible Reading Plan</h1>
+        </div>
+        <a class="button secondary" href="../index.html">Back to dashboard</a>
+      </header>
+
+      <main class="layout">
+        <aside class="panel">
+          <div class="panel-header">
+            <h2>Plans</h2>
+            <button id="newPlanBtn" class="button primary" type="button">New plan</button>
+          </div>
+
+          <div id="planList" class="plan-list" aria-live="polite"></div>
+        </aside>
+
+        <section class="panel main-panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow subtle">Daily rhythm</p>
+              <h2 id="activePlanTitle">Loading plan…</h2>
+            </div>
+            <div class="status-pill" id="planStatus">Offline</div>
+          </div>
+
+          <form id="planForm" class="plan-form">
+            <div class="field-grid">
+              <label>
+                Plan name
+                <input id="planNameInput" name="planName" type="text" placeholder="Example: Daily Gospel Reading" />
+              </label>
+              <label>
+                Start date
+                <input id="planDateInput" name="planDate" type="date" />
+              </label>
+            </div>
+
+            <div class="field-grid compact">
+              <label>
+                Book
+                <select id="bookSelect" name="book"></select>
+              </label>
+              <label>
+                Chapter
+                <input id="chapterInput" name="chapter" type="number" min="1" value="1" />
+              </label>
+              <label>
+                From verse
+                <input id="fromVerseInput" name="fromVerse" type="number" min="1" value="1" />
+              </label>
+              <label>
+                To verse
+                <input id="toVerseInput" name="toVerse" type="number" min="1" value="10" />
+              </label>
+            </div>
+
+            <div class="field-grid single">
+              <label>
+                Reading note
+                <input id="noteInput" name="note" type="text" placeholder="Example: Pray before reading and meditate on the theme." />
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="button primary">Add reading block</button>
+              <button type="button" id="clearPlanBtn" class="button secondary">Reset plan</button>
+            </div>
+          </form>
+
+          <div class="reading-panel">
+            <div class="passage-header">
+              <div>
+                <p class="eyebrow subtle">Current passage</p>
+                <h3 id="selectedPassageTitle">No passage selected</h3>
+              </div>
+              <div class="audio-controls" aria-label="Audio controls">
+                <button id="speakBtn" class="button primary" type="button">Read aloud</button>
+                <button id="pauseBtn" class="button secondary" type="button">Pause</button>
+                <button id="stopBtn" class="button secondary" type="button">Stop</button>
+              </div>
+            </div>
+
+            <div id="selectedPassageText" class="passage-text">
+              Choose a reading block to begin.
+            </div>
+
+            <div class="voice-controls">
+              <label>
+                Voice
+                <select id="voiceSelect"></select>
+              </label>
+              <label>
+                Rate
+                <input id="rateInput" type="range" min="0.7" max="1.4" step="0.1" value="1" />
+              </label>
+            </div>
+          </div>
+
+          <div class="progress-panel">
+            <div class="progress-header">
+              <h3>Today's plan progress</h3>
+              <span id="progressSummary">0 of 0 complete</span>
+            </div>
+            <div id="progressList" class="progress-list"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
