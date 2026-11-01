@@ -68,6 +68,24 @@ window.siteConfig = {
       ]
     },
     {
+      slug: "bible-plan",
+      name: "Private Bible Reading Plan",
+      health: "healthy",
+      status: "Operational",
+      publicRoute: "/bible-plan",
+      publicSummary:
+        "Offline-first personal Bible reading tracker with custom plans and system voice playback.",
+      activity: "Reading plan management + TTS playback",
+      uptime: "In development",
+      publicPath: "./bible-plan/index.html",
+      privateSummary:
+        "This local-only Bible workflow is intentionally private: it stores user reading plans locally on the device and keeps Crossway ESV content as an optional external reference, not a required platform integration.",
+      privateBullets: [
+        "Reading plans are stored locally in browser storage for personal use on 1–2 devices.",
+        "System audio playback is configured without locking the app into a closed Bible ecosystem."
+      ]
+    },
+    {
       slug: "f3-workout-randomizer",
       name: "F3 Workout Randomizer",
       health: "healthy",
