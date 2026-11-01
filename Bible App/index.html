@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Private Bible Reading Plan</title>
+    <meta
+      name="description"
+      content="Local-only Bible reading planner with custom plans and text-to-speech audio."
+    />
+    <meta name="theme-color" content="#0d1a2a" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icon-192.svg" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Personal study</p>
+          <h1>Private Bible Reading Plan</h1>
+        </div>
+        <a class="button secondary" href="../index.html">Back to dashboard</a>
+      </header>
+
+      <main class="layout">
+        <aside class="panel">
+          <div class="panel-header">
+            <h2>Plans</h2>
+            <button id="newPlanBtn" class="button primary" type="button">New plan</button>
+          </div>
+
+          <div id="planList" class="plan-list" aria-live="polite"></div>
+        </aside>
+
+        <section class="panel main-panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow subtle">Private device mode</p>
+              <h2 id="activePlanTitle">Loading plan…</h2>
+            </div>
+            <div class="status-pill" id="planStatus">Offline</div>
+          </div>
+
+          <form id="planForm" class="plan-form">
+            <div class="field-grid">
+              <label>
+                Plan name
+                <input id="planNameInput" name="planName" type="text" placeholder="Example: One-Year Bible Reading Plan" />
+              </label>
+              <label>
+                Start date
+                <input id="planDateInput" name="planDate" type="date" />
+              </label>
+            </div>
+
+            <div class="field-grid single">
+              <label>
+                Reading day
+                <input id="readingDateInput" name="readingDate" type="date" />
+              </label>
+            </div>
+
+            <div class="field-grid single">
+              <label>
+                Plan type
+                <select id="planTemplateSelect" name="planType">
+                  <option value="plan1">Plan 1 – Blended Daily Reading</option>
+                  <option value="plan2">Plan 2 – Seven-Section Rotation</option>
+                  <option value="plan3">Plan 3 – Cover-to-Cover Order</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="field-grid single">
+              <div class="section-builder-header">
+                <h3>Daily sections</h3>
+                <div class="section-buttons">
+                  <button type="button" id="addSectionRowBtn" class="button secondary">Add section</button>
+                  <button type="button" id="presetFourBtn" class="button secondary">Use 4-section preset</button>
+                  <button type="button" id="presetTenBtn" class="button secondary">Use 10-section preset</button>
+                  <button type="button" id="clearSectionRowsBtn" class="button secondary">Clear sections</button>
+                </div>
+              </div>
+              <p class="install-hint">Add as many reading sections as needed for the same day, then save all at once.</p>
+              <div id="sectionRows" class="section-rows"></div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="button primary">Add daily sections</button>
+              <button type="button" id="clearPlanBtn" class="button secondary">Reset plan</button>
+            </div>
+          </form>
+
+          <div class="reading-panel">
+            <div class="passage-header">
+              <div>
+                <p class="eyebrow subtle">Current passage</p>
+                <h3 id="selectedPassageTitle">No passage selected</h3>
+              </div>
+              <div class="audio-controls" aria-label="Audio controls">
+                <button id="speakBtn" class="button primary" type="button">Read aloud</button>
+                <button id="speakQueueBtn" class="button secondary" type="button">Read today queue</button>
+                <button id="pauseBtn" class="button secondary" type="button">Pause</button>
+                <button id="stopBtn" class="button secondary" type="button">Stop</button>
+              </div>
+            </div>
+
+            <div id="selectedPassageText" class="passage-text">
+              Choose a reading block to begin.
+            </div>
+
+            <div class="voice-controls">
+              <label>
+                Voice
+                <select id="voiceSelect"></select>
+              </label>
+              <label>
+                Rate
+                <input id="rateInput" type="range" min="0.7" max="1.4" step="0.1" value="1" />
+              </label>
+            </div>
+
+            <p class="install-hint" id="installHint">Tip: on phone, add this page to your home screen for a lightweight app experience.</p>
+          </div>
+
+          <div class="progress-panel">
+            <div class="progress-header">
+              <h3>Today's plan progress</h3>
+              <span id="progressSummary">0 of 0 complete</span>
+            </div>
+            <div id="progressList" class="progress-list"></div>
+          </div>
+
+          <div class="progress-panel">
+            <div class="progress-header">
+              <h3>Text to JSON Converter</h3>
+              <span id="converterSummary">No file loaded</span>
+            </div>
+
+            <p class="install-hint">
+              Choose a parser mode, then format text as either:
+              <strong>John 3:16-18 | note text | optional readback text</strong>
+              or Day blocks with headings like:
+              <strong>Day 1</strong> followed by reading lines.
+            </p>
+
+            <div class="field-grid single">
+              <label>
+                Parser mode
+                <select id="parserModeSelect">
+                  <option value="line">Line mode (one reading per line)</option>
+                  <option value="day">Day mode (Day X headings + readings)</option>
+                </select>
+              </label>
+            </div>
+
+            <div id="dropZone" class="drop-zone" role="button" tabindex="0" aria-label="Drop text file here or click to choose one">
+              Drop .txt file here or click to upload
+            </div>
+
+            <input id="textFileInput" type="file" accept=".txt,text/plain" hidden />
+
+            <div class="form-actions">
+              <button type="button" id="parseTextBtn" class="button primary">Parse text</button>
+              <button type="button" id="downloadJsonBtn" class="button secondary">Download JSON</button>
+              <button type="button" id="importJsonBtn" class="button secondary">Import to active plan</button>
+            </div>
+
+            <pre id="converterPreview" class="converter-preview">No parsed data yet.</pre>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
