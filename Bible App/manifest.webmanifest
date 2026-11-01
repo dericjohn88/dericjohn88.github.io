@@ -1,7 +1,8 @@
 {
   "name": "Private Bible Reading Plan",
   "short_name": "Bible Plan",
-  "start_url": "./index.html",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "background_color": "#07111f",
   "theme_color": "#0d1a2a",

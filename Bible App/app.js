@@ -93,10 +93,12 @@ const downloadJsonBtn = document.getElementById("downloadJsonBtn");
 const importJsonBtn = document.getElementById("importJsonBtn");
 const converterPreview = document.getElementById("converterPreview");
 const converterSummary = document.getElementById("converterSummary");
+const installAppBtn = document.getElementById("installAppBtn");
 
 let uploadedText = "";
 let parsedConverterEntries = [];
 let lastParseStats = { total: 0, parsed: 0, skipped: 0, mode: "line" };
+let deferredInstallPrompt = null;
 
 const BOOK_OPTIONS_HTML = BOOKS.map((book) => `<option value="${book}">${book}</option>`).join("");
 const FOUR_SECTION_PRESET = ["Genesis", "Matthew", "Psalms", "Proverbs"];
@@ -114,16 +116,61 @@ const TEN_SECTION_PRESET = [
 ];
 
 function getSavedPlans() {
+  const normalizeEntry = (entry) => {
+    const fallbackBook = "John";
+    const safeBook = BOOKS.includes(entry?.book) ? entry.book : fallbackBook;
+    const chapter = Math.max(1, Number(entry?.chapter) || 1);
+    const fromVerse = Math.max(1, Number(entry?.fromVerse) || 1);
+    const toVerse = Math.max(fromVerse, Number(entry?.toVerse) || fromVerse);
+    return {
+      id: typeof entry?.id === "string" ? entry.id : createEntryId(),
+      book: safeBook,
+      chapter,
+      fromVerse,
+      toVerse,
+      note: typeof entry?.note === "string" ? entry.note : "Daily reflection for this passage.",
+      readbackText: typeof entry?.readbackText === "string" ? entry.readbackText : "",
+      complete: Boolean(entry?.complete),
+      ...(Number.isInteger(entry?.dayNumber) && entry.dayNumber > 0 ? { dayNumber: entry.dayNumber } : {})
+    };
+  };
+
+  const normalizePlan = (plan, index) => {
+    const template = typeof plan?.template === "string" ? plan.template : "plan1";
+    const entries = Array.isArray(plan?.entries) ? plan.entries.map(normalizeEntry) : [];
+    return {
+      id: typeof plan?.id === "string" ? plan.id : `plan-local-${index + 1}`,
+      name: typeof plan?.name === "string" && plan.name.trim() ? plan.name.trim() : `Plan ${index + 1}`,
+      startDate: typeof plan?.startDate === "string" ? plan.startDate : DAY_MIN,
+      readingDate: typeof plan?.readingDate === "string" ? plan.readingDate : DAY_MIN,
+      template,
+      entries
+    };
+  };
+
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
       return [structuredClone(SAMPLE_PLAN)];
     }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length ? parsed : [structuredClone(SAMPLE_PLAN)];
+    if (!Array.isArray(parsed) || !parsed.length) {
+      return [structuredClone(SAMPLE_PLAN)];
+    }
+    const normalized = parsed.map(normalizePlan);
+    return normalized.length ? normalized : [structuredClone(SAMPLE_PLAN)];
   } catch (error) {
     return [structuredClone(SAMPLE_PLAN)];
   }
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 function savePlans() {
@@ -401,13 +448,13 @@ function createSectionRow(initial = {}) {
     <div class="field-grid single">
       <label>
         Reading note
-        <input class="section-note" type="text" placeholder="Example: Pray before reading and meditate on the theme." value="${initial.note || ""}" />
+        <input class="section-note" type="text" placeholder="Example: Pray before reading and meditate on the theme." value="${escapeHtml(initial.note || "")}" />
       </label>
     </div>
     <div class="field-grid single">
       <label>
         Personal readback text (optional)
-        <textarea class="section-readback" rows="3" placeholder="Paste or write what you want read back.">${initial.readbackText || ""}</textarea>
+        <textarea class="section-readback" rows="3" placeholder="Paste or write what you want read back.">${escapeHtml(initial.readbackText || "")}</textarea>
       </label>
     </div>
   `;
@@ -486,21 +533,28 @@ function renderPlans() {
     return;
   }
 
-  planList.innerHTML = state.plans
-    .map((plan) => `
-      <button type="button" class="plan-item ${plan.id === state.currentPlanId ? "active" : ""}" data-plan-id="${plan.id}">
-        <strong>${plan.name}</strong>
-        <span>${plan.template ? PLAN_TEMPLATES[plan.template]?.label || "Custom" : "Custom"} · ${plan.entries.length} reading blocks</span>
-      </button>
-    `)
-    .join("");
+  planList.innerHTML = "";
+  state.plans.forEach((plan) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `plan-item ${plan.id === state.currentPlanId ? "active" : ""}`;
+    button.dataset.planId = plan.id;
 
-  planList.querySelectorAll(".plan-item").forEach((button) => {
+    const strong = document.createElement("strong");
+    strong.textContent = plan.name || "Untitled plan";
+
+    const span = document.createElement("span");
+    const templateLabel = plan.template ? PLAN_TEMPLATES[plan.template]?.label || "Custom" : "Custom";
+    span.textContent = `${templateLabel} · ${plan.entries.length} reading blocks`;
+
+    button.appendChild(strong);
+    button.appendChild(span);
     button.addEventListener("click", () => {
       state.currentPlanId = button.dataset.planId;
       state.selectedPassageId = getCurrentPlan()?.entries[0]?.id || null;
       renderAll();
     });
+    planList.appendChild(button);
   });
 }
 
@@ -516,31 +570,40 @@ function renderProgress() {
   const completed = plan.entries.filter((entry) => entry.complete).length;
   progressSummary.textContent = `${completed} of ${total} complete`;
 
-  progressList.innerHTML = plan.entries
-    .map((entry) => `
-      <div class="progress-item ${entry.complete ? "done" : ""}" data-entry-id="${entry.id}">
-        <div>
-          <strong>${entry.book} ${entry.chapter}:${entry.fromVerse}-${entry.toVerse}</strong>
-          <span>${entry.note || "Daily reflection"}</span>
-        </div>
-        <button type="button" aria-label="Toggle reading completion for ${entry.book} ${entry.chapter}">${entry.complete ? "Completed" : "Mark done"}</button>
-      </div>
-    `)
-    .join("");
+  progressList.innerHTML = "";
+  plan.entries.forEach((entry) => {
+    const item = document.createElement("div");
+    item.className = `progress-item ${entry.complete ? "done" : ""}`;
+    item.dataset.entryId = entry.id;
 
-  progressList.querySelectorAll(".progress-item").forEach((item) => {
-    const entryId = item.dataset.entryId;
+    const textWrap = document.createElement("div");
+    const strong = document.createElement("strong");
+    strong.textContent = `${entry.book} ${entry.chapter}:${entry.fromVerse}-${entry.toVerse}`;
+    const span = document.createElement("span");
+    span.textContent = entry.note || "Daily reflection";
+    textWrap.appendChild(strong);
+    textWrap.appendChild(span);
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.setAttribute("aria-label", `Toggle reading completion for ${entry.book} ${entry.chapter}`);
+    button.textContent = entry.complete ? "Completed" : "Mark done";
+
+    item.appendChild(textWrap);
+    item.appendChild(button);
     item.addEventListener("click", (event) => {
-      if (event.target.tagName === "BUTTON") {
-        const entry = plan.entries.find((block) => block.id === entryId);
-        if (!entry) return;
-        entry.complete = !entry.complete;
+      if (event.target === button) {
+        const entryRef = plan.entries.find((block) => block.id === item.dataset.entryId);
+        if (!entryRef) return;
+        entryRef.complete = !entryRef.complete;
         savePlans();
         renderProgress();
       } else {
-        setSelectedPassage(entryId);
+        setSelectedPassage(item.dataset.entryId);
       }
     });
+
+    progressList.appendChild(item);
   });
 }
 
@@ -656,13 +719,34 @@ function populateVoices() {
   const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
   state.voices = voices;
 
-  voiceSelect.innerHTML = voices.length
-    ? voices
-        .map(
-          (voice, index) => `<option value="${index}">${voice.name} (${voice.lang})</option>`
-        )
-        .join("")
-    : '<option value="">No system voices available</option>';
+  voiceSelect.innerHTML = "";
+  if (!voices.length) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "No system voices available";
+    voiceSelect.appendChild(option);
+    return;
+  }
+
+  voices.forEach((voice, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = `${voice.name} (${voice.lang})`;
+    voiceSelect.appendChild(option);
+  });
+}
+
+function updateInstallButtonVisibility() {
+  if (!installAppBtn) {
+    return;
+  }
+
+  const standalone = window.matchMedia?.("(display-mode: standalone)")?.matches || window.navigator.standalone;
+  if (standalone || !deferredInstallPrompt) {
+    installAppBtn.classList.add("is-hidden");
+  } else {
+    installAppBtn.classList.remove("is-hidden");
+  }
 }
 
 function speakCurrentPassage() {
@@ -849,6 +933,28 @@ clearSectionRowsBtn?.addEventListener("click", () => {
   ensureAtLeastOneSection();
 });
 
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  updateInstallButtonVisibility();
+});
+
+installAppBtn?.addEventListener("click", async () => {
+  if (!deferredInstallPrompt) {
+    return;
+  }
+
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  updateInstallButtonVisibility();
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  updateInstallButtonVisibility();
+});
+
 window.speechSynthesis?.addEventListener?.("voiceschanged", populateVoices);
 
 function initialize() {
@@ -864,7 +970,10 @@ function initialize() {
     readingDateInput.value = DAY_MIN;
   }
 
-  if ("serviceWorker" in navigator) {
+  updateInstallButtonVisibility();
+
+  const isSecureContextForSw = location.protocol === "https:" || location.hostname === "localhost";
+  if ("serviceWorker" in navigator && isSecureContextForSw) {
     navigator.serviceWorker.register("./sw.js").catch(() => {
       // Keep the app functional even if service worker registration fails.
     });
