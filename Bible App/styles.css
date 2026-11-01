@@ -241,6 +241,10 @@ input[type="range"] {
   color: var(--text);
 }
 
+.is-hidden {
+  display: none !important;
+}
+
 .status-pill {
   display: inline-flex;
   align-items: center;
