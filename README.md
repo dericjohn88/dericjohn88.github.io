@@ -14,6 +14,16 @@ Static GitHub Pages dashboard for hosted tools, public status views, and a Fireb
 
 - The site is now a plain static dashboard that can be extended with additional tool entries over time.
 - The repository only contains public Firebase configuration. Private access should be enforced by Firebase Authentication and Firestore rules.
+- The dashboard tool list is aligned to Vault projects and includes dedicated pages for:
+  - Autotrader
+  - Bible App
+  - F3 Workout Randomizer
+  - Financial Test App
+  - Personal Meal Reminder
+  - Travel Mobile App
+  - Movie Deduplication
+  - Persistent Memory
+- Per current project rules, Hermes and Mobile Hermes App are intentionally excluded from site pages.
 
 ## Firebase Setup
 

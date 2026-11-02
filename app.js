@@ -17,12 +17,17 @@ const ownerOnlyContent = document.getElementById("ownerOnlyContent");
 let selectedToolSlug = config.tools[0].slug;
 let currentUser = null;
 
-const allowedEmails = (config.owner && Array.isArray(config.owner.allowedEmails)
-  ? config.owner.allowedEmails
-  : []).map((email) => email.trim().toLowerCase());
+const allowedEmails = (
+  config.owner && Array.isArray(config.owner.allowedEmails)
+    ? config.owner.allowedEmails
+    : []
+).map((email) => email.trim().toLowerCase());
 
 function isOwnerEmail(email) {
-  return typeof email === "string" && allowedEmails.includes(email.trim().toLowerCase());
+  return (
+    typeof email === "string" &&
+    allowedEmails.includes(email.trim().toLowerCase())
+  );
 }
 
 function isOwnerLoggedIn() {
@@ -31,31 +36,33 @@ function isOwnerLoggedIn() {
 
 function getStats(tools) {
   const healthyCount = tools.filter((tool) => tool.health === "healthy").length;
-  const monitoringCount = tools.filter((tool) => tool.health !== "healthy").length;
+  const monitoringCount = tools.filter(
+    (tool) => tool.health !== "healthy",
+  ).length;
 
   return [
     {
       label: "Applications",
       value: tools.length,
-      footnote: "Projects with a dedicated dashboard page on this site"
+      footnote: "Projects with a dedicated dashboard page on this site",
     },
     {
       label: "Operational now",
       value: healthyCount,
-      footnote: `${healthyCount}/${tools.length} apps currently operational`
+      footnote: `${healthyCount}/${tools.length} apps currently operational`,
     },
     {
       label: "Under watch",
       value: monitoringCount,
       footnote: monitoringCount
         ? "At least one app has open monitoring alerts"
-        : "All apps passing health checks"
+        : "All apps passing health checks",
     },
     {
       label: "In development",
       value: tools.filter((tool) => tool.uptime === "In development").length,
-      footnote: "Not yet deployed to production"
-    }
+      footnote: "Not yet deployed to production",
+    },
   ];
 }
 
@@ -119,24 +126,25 @@ function renderPrivateBullets(tool) {
     return "";
   }
 
-  const items = tool.privateBullets
-    .map((item) => `<li>${item}</li>`)
-    .join("");
+  const items = tool.privateBullets.map((item) => `<li>${item}</li>`).join("");
 
   return `<ul class="detail-list">${items}</ul>`;
 }
 
 function renderDetail() {
-  const tool = config.tools.find((entry) => entry.slug === selectedToolSlug) ?? config.tools[0];
-  const privateBlock = isOwnerLoggedIn() && tool.privateSummary
-    ? `
+  const tool =
+    config.tools.find((entry) => entry.slug === selectedToolSlug) ??
+    config.tools[0];
+  const privateBlock =
+    isOwnerLoggedIn() && tool.privateSummary
+      ? `
       <div class="detail-section">
         <h3>Owner-only notes</h3>
         <p class="detail-copy">${tool.privateSummary}</p>
         ${renderPrivateBullets(tool)}
       </div>
     `
-    : "";
+      : "";
 
   detailPanel.innerHTML = `
     <div class="detail-header">
@@ -191,7 +199,7 @@ function renderPrivateContent() {
           <p class="detail-copy">${tool.privateSummary}</p>
           ${renderPrivateBullets(tool)}
         </article>
-      `
+      `,
     )
     .join("");
 
@@ -216,7 +224,9 @@ function renderEmptyState() {
 
 function updateAuthUi() {
   if (welcomeEyebrow) {
-    welcomeEyebrow.textContent = isOwnerLoggedIn() ? "Owner dashboard" : "Open dashboard";
+    welcomeEyebrow.textContent = isOwnerLoggedIn()
+      ? "Owner dashboard"
+      : "Open dashboard";
   }
 
   if (!authStatusEl || !googleSignInBtn || !googleSignOutBtn) {
@@ -224,7 +234,8 @@ function updateAuthUi() {
   }
 
   if (!window.firebase || !window.firebase.auth) {
-    authStatusEl.textContent = "Firebase Auth is not configured yet. Add your values in site-config.js to enable Google sign-in.";
+    authStatusEl.textContent =
+      "Firebase Auth is not configured yet. Add your values in site-config.js to enable Google sign-in.";
     googleSignInBtn.disabled = true;
     googleSignOutBtn.hidden = true;
     return;
@@ -239,9 +250,10 @@ function updateAuthUi() {
     googleSignInBtn.hidden = true;
     googleSignOutBtn.hidden = false;
   } else {
-    authStatusEl.textContent = config.owner && config.owner.accessMessage
-      ? config.owner.accessMessage
-      : "Public access is enabled. Restricted details unlock for your approved Google account.";
+    authStatusEl.textContent =
+      config.owner && config.owner.accessMessage
+        ? config.owner.accessMessage
+        : "Public access is enabled. Restricted details unlock for your approved Google account.";
     googleSignInBtn.hidden = false;
     googleSignOutBtn.hidden = true;
   }
@@ -268,11 +280,13 @@ function initializeAuth() {
       await auth.signInWithPopup(provider);
     } catch (error) {
       if (error && error.code === "auth/popup-blocked") {
-        authStatusEl.textContent = "Popup was blocked. Please allow pop-ups and try sign-in again.";
+        authStatusEl.textContent =
+          "Popup was blocked. Please allow pop-ups and try sign-in again.";
         return;
       }
 
-      authStatusEl.textContent = "Google sign-in failed. Please try again or confirm Firebase Auth is configured.";
+      authStatusEl.textContent =
+        "Google sign-in failed. Please try again or confirm Firebase Auth is configured.";
     }
   });
 
@@ -286,7 +300,9 @@ function initializeAuth() {
 }
 
 if (welcomeEyebrow) {
-  welcomeEyebrow.textContent = isOwnerLoggedIn() ? "Owner dashboard" : "Open dashboard";
+  welcomeEyebrow.textContent = isOwnerLoggedIn()
+    ? "Owner dashboard"
+    : "Open dashboard";
 }
 
 renderStats();
