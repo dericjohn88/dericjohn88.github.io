@@ -241,12 +241,14 @@ function updateAuthUi() {
     return;
   }
 
+  const approvedEmails = allowedEmails.join(", ");
+
   if (currentUser && isOwnerLoggedIn()) {
     authStatusEl.textContent = `Signed in as ${currentUser.email}. Owner-only content is unlocked.`;
     googleSignInBtn.hidden = true;
     googleSignOutBtn.hidden = false;
   } else if (currentUser) {
-    authStatusEl.textContent = `Signed in as ${currentUser.email}, but this account is not approved for private access.`;
+    authStatusEl.textContent = `Signed in as ${currentUser.email}, but this account is not approved for private access. Only ${approvedEmails} may sign in.`;
     googleSignInBtn.hidden = true;
     googleSignOutBtn.hidden = false;
   } else {
@@ -269,6 +271,15 @@ function initializeAuth() {
   provider.setCustomParameters({ prompt: "select_account" });
 
   auth.onAuthStateChanged((user) => {
+    if (user && !isOwnerEmail(user.email)) {
+      auth.signOut().catch(() => {});
+      currentUser = null;
+      updateAuthUi();
+      renderPrivateContent();
+      renderDetail();
+      return;
+    }
+
     currentUser = user;
     updateAuthUi();
     renderPrivateContent();
@@ -277,7 +288,18 @@ function initializeAuth() {
 
   googleSignInBtn.addEventListener("click", async () => {
     try {
-      await auth.signInWithPopup(provider);
+      const result = await auth.signInWithPopup(provider);
+      const signedInUser = result && result.user ? result.user : null;
+
+      if (signedInUser && !isOwnerEmail(signedInUser.email)) {
+        authStatusEl.textContent = `Access denied for ${signedInUser.email}. Only ${allowedEmails.join(", ")} may sign in.`;
+        await auth.signOut();
+        currentUser = null;
+        updateAuthUi();
+        renderPrivateContent();
+        renderDetail();
+        return;
+      }
     } catch (error) {
       if (error && error.code === "auth/popup-blocked") {
         authStatusEl.textContent =

@@ -1,12 +1,20 @@
 window.siteConfig = {
   firebase: {
-    apiKey: "AIzaSyDnTU6aFtglOzEWbRDANA2BxDRPdizmW_E",
-    authDomain: "dericjohn88-9f1fd.firebaseapp.com",
-    projectId: "dericjohn88-9f1fd",
-    appId: "1:842234641604:web:c25d1e34c6e0d6f7d31d91",
+    // Load from environment variables in .env.local (not committed to git)
+    // See .env.example for configuration template
+    apiKey: import.meta.env?.VITE_FIREBASE_API_KEY || "",
+    authDomain: import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN || "",
+    projectId: import.meta.env?.VITE_FIREBASE_PROJECT_ID || "",
+    appId: import.meta.env?.VITE_FIREBASE_APP_ID || "",
   },
   owner: {
-    allowedEmails: ["deric.john88@gmail.com"],
+    // Load from environment variables in .env.local (not committed to git)
+    // Server-side validation should verify Firebase auth claims match approved emails
+    // See .env.example for configuration template
+    allowedEmails: (import.meta.env?.VITE_ALLOWED_OWNER_EMAILS || "")
+      .split(",")
+      .map((e) => e.trim())
+      .filter((e) => e),
     accessMessage:
       "Public access is enabled. Restricted details unlock for your approved Google account.",
     privateIntro:
