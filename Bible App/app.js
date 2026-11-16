@@ -1,42 +1,181 @@
 const STORAGE_KEY = "private-bible-plan-v1";
+const AUDIO_CACHE_KEY = "bible-app-audio-cache";
 const DAY_MIN = "2026-01-01";
 const DAY_MAX = "2026-12-31";
 const BOOKS = [
-  "Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth","1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther","Job","Psalms","Proverbs","Ecclesiastes","Song of Solomon","Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi",
-  "Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter","1 John","2 John","3 John","Jude","Revelation"
+  "Genesis",
+  "Exodus",
+  "Leviticus",
+  "Numbers",
+  "Deuteronomy",
+  "Joshua",
+  "Judges",
+  "Ruth",
+  "1 Samuel",
+  "2 Samuel",
+  "1 Kings",
+  "2 Kings",
+  "1 Chronicles",
+  "2 Chronicles",
+  "Ezra",
+  "Nehemiah",
+  "Esther",
+  "Job",
+  "Psalms",
+  "Proverbs",
+  "Ecclesiastes",
+  "Song of Solomon",
+  "Isaiah",
+  "Jeremiah",
+  "Lamentations",
+  "Ezekiel",
+  "Daniel",
+  "Hosea",
+  "Joel",
+  "Amos",
+  "Obadiah",
+  "Jonah",
+  "Micah",
+  "Nahum",
+  "Habakkuk",
+  "Zephaniah",
+  "Haggai",
+  "Zechariah",
+  "Malachi",
+  "Matthew",
+  "Mark",
+  "Luke",
+  "John",
+  "Acts",
+  "Romans",
+  "1 Corinthians",
+  "2 Corinthians",
+  "Galatians",
+  "Ephesians",
+  "Philippians",
+  "Colossians",
+  "1 Thessalonians",
+  "2 Thessalonians",
+  "1 Timothy",
+  "2 Timothy",
+  "Titus",
+  "Philemon",
+  "Hebrews",
+  "James",
+  "1 Peter",
+  "2 Peter",
+  "1 John",
+  "2 John",
+  "3 John",
+  "Jude",
+  "Revelation",
 ];
 
 const PLAN_TEMPLATES = {
   plan1: {
     label: "Plan 1 – Blended Daily Reading",
-    summary: "Read a bit from the Old Testament, New Testament, Psalms, and Proverbs each day.",
+    summary:
+      "Read a bit from the Old Testament, New Testament, Psalms, and Proverbs each day.",
     defaults: [
-      { book: "Genesis", chapter: 1, fromVerse: 1, toVerse: 25, note: "Read the opening creation account and reflect on God's order." },
-      { book: "Matthew", chapter: 1, fromVerse: 1, toVerse: 18, note: "Trace Christ's genealogy and the arrival of the promised King." },
-      { book: "Psalms", chapter: 1, fromVerse: 1, toVerse: 6, note: "Pray through the Psalm and meditate on wise living." },
-      { book: "Proverbs", chapter: 1, fromVerse: 1, toVerse: 9, note: "Capture the principles of wisdom for the day." }
-    ]
+      {
+        book: "Genesis",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 25,
+        note: "Read the opening creation account and reflect on God's order.",
+      },
+      {
+        book: "Matthew",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 18,
+        note: "Trace Christ's genealogy and the arrival of the promised King.",
+      },
+      {
+        book: "Psalms",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 6,
+        note: "Pray through the Psalm and meditate on wise living.",
+      },
+      {
+        book: "Proverbs",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 9,
+        note: "Capture the principles of wisdom for the day.",
+      },
+    ],
   },
   plan2: {
     label: "Plan 2 – Seven-Section Rotation",
-    summary: "Rotate through the Law, History, Psalms, Poetry, Prophecy, Gospels, and Epistles by day.",
+    summary:
+      "Rotate through the Law, History, Psalms, Poetry, Prophecy, Gospels, and Epistles by day.",
     defaults: [
-      { book: "Romans", chapter: 1, fromVerse: 1, toVerse: 17, note: "Begin the epistles section with the gospel's revelation." },
-      { book: "Genesis", chapter: 1, fromVerse: 1, toVerse: 20, note: "Move through the Law and reflect on creation and covenant." },
-      { book: "Joshua", chapter: 1, fromVerse: 1, toVerse: 18, note: "Read the history section and meditate on courage in obedience." },
-      { book: "Psalms", chapter: 23, fromVerse: 1, toVerse: 6, note: "Let the psalms guide your heart into trust and peace." }
-    ]
+      {
+        book: "Romans",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 17,
+        note: "Begin the epistles section with the gospel's revelation.",
+      },
+      {
+        book: "Genesis",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 20,
+        note: "Move through the Law and reflect on creation and covenant.",
+      },
+      {
+        book: "Joshua",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 18,
+        note: "Read the history section and meditate on courage in obedience.",
+      },
+      {
+        book: "Psalms",
+        chapter: 23,
+        fromVerse: 1,
+        toVerse: 6,
+        note: "Let the psalms guide your heart into trust and peace.",
+      },
+    ],
   },
   plan3: {
     label: "Plan 3 – Cover-to-Cover Order",
     summary: "Read straight through the Bible from Genesis to Revelation.",
     defaults: [
-      { book: "Genesis", chapter: 1, fromVerse: 1, toVerse: 25, note: "Begin at the beginning and mark the creation narrative." },
-      { book: "Genesis", chapter: 2, fromVerse: 1, toVerse: 25, note: "Consider the harmony of God's design and relationship." },
-      { book: "Genesis", chapter: 3, fromVerse: 1, toVerse: 24, note: "Reflect on sin, consequence, and the promise of redemption." },
-      { book: "Matthew", chapter: 1, fromVerse: 1, toVerse: 25, note: "Track the fulfillment of the covenant promise in the gospel." }
-    ]
-  }
+      {
+        book: "Genesis",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 25,
+        note: "Begin at the beginning and mark the creation narrative.",
+      },
+      {
+        book: "Genesis",
+        chapter: 2,
+        fromVerse: 1,
+        toVerse: 25,
+        note: "Consider the harmony of God's design and relationship.",
+      },
+      {
+        book: "Genesis",
+        chapter: 3,
+        fromVerse: 1,
+        toVerse: 24,
+        note: "Reflect on sin, consequence, and the promise of redemption.",
+      },
+      {
+        book: "Matthew",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 25,
+        note: "Track the fulfillment of the covenant promise in the gospel.",
+      },
+    ],
+  },
 };
 
 const SAMPLE_PLAN = {
@@ -48,8 +187,8 @@ const SAMPLE_PLAN = {
   entries: PLAN_TEMPLATES.plan1.defaults.map((entry, index) => ({
     id: `sample-entry-${index + 1}`,
     ...entry,
-    complete: false
-  }))
+    complete: false,
+  })),
 };
 
 const state = {
@@ -57,7 +196,7 @@ const state = {
   currentPlanId: null,
   selectedPassageId: null,
   speech: null,
-  voices: []
+  voices: [],
 };
 
 const sectionRows = document.getElementById("sectionRows");
@@ -93,14 +232,14 @@ const downloadJsonBtn = document.getElementById("downloadJsonBtn");
 const importJsonBtn = document.getElementById("importJsonBtn");
 const converterPreview = document.getElementById("converterPreview");
 const converterSummary = document.getElementById("converterSummary");
-const installAppBtn = document.getElementById("installAppBtn");
 
 let uploadedText = "";
 let parsedConverterEntries = [];
 let lastParseStats = { total: 0, parsed: 0, skipped: 0, mode: "line" };
-let deferredInstallPrompt = null;
 
-const BOOK_OPTIONS_HTML = BOOKS.map((book) => `<option value="${book}">${book}</option>`).join("");
+const BOOK_OPTIONS_HTML = BOOKS.map(
+  (book) => `<option value="${book}">${book}</option>`,
+).join("");
 const FOUR_SECTION_PRESET = ["Genesis", "Matthew", "Psalms", "Proverbs"];
 const TEN_SECTION_PRESET = [
   "Genesis",
@@ -112,65 +251,22 @@ const TEN_SECTION_PRESET = [
   "Matthew",
   "Acts",
   "Romans",
-  "Revelation"
+  "Revelation",
 ];
 
 function getSavedPlans() {
-  const normalizeEntry = (entry) => {
-    const fallbackBook = "John";
-    const safeBook = BOOKS.includes(entry?.book) ? entry.book : fallbackBook;
-    const chapter = Math.max(1, Number(entry?.chapter) || 1);
-    const fromVerse = Math.max(1, Number(entry?.fromVerse) || 1);
-    const toVerse = Math.max(fromVerse, Number(entry?.toVerse) || fromVerse);
-    return {
-      id: typeof entry?.id === "string" ? entry.id : createEntryId(),
-      book: safeBook,
-      chapter,
-      fromVerse,
-      toVerse,
-      note: typeof entry?.note === "string" ? entry.note : "Daily reflection for this passage.",
-      readbackText: typeof entry?.readbackText === "string" ? entry.readbackText : "",
-      complete: Boolean(entry?.complete),
-      ...(Number.isInteger(entry?.dayNumber) && entry.dayNumber > 0 ? { dayNumber: entry.dayNumber } : {})
-    };
-  };
-
-  const normalizePlan = (plan, index) => {
-    const template = typeof plan?.template === "string" ? plan.template : "plan1";
-    const entries = Array.isArray(plan?.entries) ? plan.entries.map(normalizeEntry) : [];
-    return {
-      id: typeof plan?.id === "string" ? plan.id : `plan-local-${index + 1}`,
-      name: typeof plan?.name === "string" && plan.name.trim() ? plan.name.trim() : `Plan ${index + 1}`,
-      startDate: typeof plan?.startDate === "string" ? plan.startDate : DAY_MIN,
-      readingDate: typeof plan?.readingDate === "string" ? plan.readingDate : DAY_MIN,
-      template,
-      entries
-    };
-  };
-
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
       return [structuredClone(SAMPLE_PLAN)];
     }
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed) || !parsed.length) {
-      return [structuredClone(SAMPLE_PLAN)];
-    }
-    const normalized = parsed.map(normalizePlan);
-    return normalized.length ? normalized : [structuredClone(SAMPLE_PLAN)];
+    return Array.isArray(parsed) && parsed.length
+      ? parsed
+      : [structuredClone(SAMPLE_PLAN)];
   } catch (error) {
     return [structuredClone(SAMPLE_PLAN)];
   }
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 }
 
 function savePlans() {
@@ -186,7 +282,10 @@ function createEntryId() {
 }
 
 function getCurrentPlan() {
-  return state.plans.find((plan) => plan.id === state.currentPlanId) || state.plans[0];
+  return (
+    state.plans.find((plan) => plan.id === state.currentPlanId) ||
+    state.plans[0]
+  );
 }
 
 function setSelectedPassage(entryId) {
@@ -225,15 +324,23 @@ function getTodaysReadList(plan) {
   }
 
   const entries = Array.isArray(plan.entries) ? plan.entries : [];
-  const selectionDate = readingDateInput.value || plan.readingDate || plan.startDate || DAY_MIN;
+  const selectionDate =
+    readingDateInput.value || plan.readingDate || plan.startDate || DAY_MIN;
 
   if (entries.length) {
-    const hasDayNumber = entries.some((entry) => Number.isInteger(entry.dayNumber));
+    const hasDayNumber = entries.some((entry) =>
+      Number.isInteger(entry.dayNumber),
+    );
     if (hasDayNumber) {
       const startDate = plan.startDate || DAY_MIN;
       const currentDate = selectionDate || startDate;
-      const dayNumber = Math.max(1, getDayOffset(currentDate) - getDayOffset(startDate) + 1);
-      const dayEntries = entries.filter((entry) => Number(entry.dayNumber) === dayNumber);
+      const dayNumber = Math.max(
+        1,
+        getDayOffset(currentDate) - getDayOffset(startDate) + 1,
+      );
+      const dayEntries = entries.filter(
+        (entry) => Number(entry.dayNumber) === dayNumber,
+      );
       if (dayEntries.length) {
         return dayEntries;
       }
@@ -261,7 +368,13 @@ function parsePlanLine(line) {
   const chapter = Number(referenceMatch[2]);
   const fromVerse = Number(referenceMatch[3]);
   const toVerse = Number(referenceMatch[4] || referenceMatch[3]);
-  if (!BOOKS.includes(book) || !chapter || !fromVerse || !toVerse || toVerse < fromVerse) {
+  if (
+    !BOOKS.includes(book) ||
+    !chapter ||
+    !fromVerse ||
+    !toVerse ||
+    toVerse < fromVerse
+  ) {
     return null;
   }
 
@@ -273,7 +386,7 @@ function parsePlanLine(line) {
     toVerse,
     note,
     readbackText,
-    complete: false
+    complete: false,
   };
 }
 
@@ -320,12 +433,13 @@ function parseTextByMode(text, mode) {
     .map((line) => line.trim())
     .filter((line) => line && !line.startsWith("#"));
 
-  const entries = mode === "day" ? parseDayBlocksToEntries(text) : parseTextToEntries(text);
+  const entries =
+    mode === "day" ? parseDayBlocksToEntries(text) : parseTextToEntries(text);
   return {
     entries,
     total: cleanedLines.length,
     parsed: entries.length,
-    skipped: Math.max(0, cleanedLines.length - entries.length)
+    skipped: Math.max(0, cleanedLines.length - entries.length),
   };
 }
 
@@ -341,7 +455,7 @@ function updateConverterPreview() {
     reference: `${entry.book} ${entry.chapter}:${entry.fromVerse}-${entry.toVerse}`,
     note: entry.note,
     readbackText: entry.readbackText,
-    dayNumber: entry.dayNumber ?? null
+    dayNumber: entry.dayNumber ?? null,
   }));
 
   converterPreview.textContent = JSON.stringify(previewData, null, 2);
@@ -361,9 +475,15 @@ function handleFileSelection(file) {
   reader.onload = () => {
     uploadedText = String(reader.result || "");
     parsedConverterEntries = [];
-    lastParseStats = { total: 0, parsed: 0, skipped: 0, mode: parserModeSelect?.value || "line" };
+    lastParseStats = {
+      total: 0,
+      parsed: 0,
+      skipped: 0,
+      mode: parserModeSelect?.value || "line",
+    };
     converterSummary.textContent = `${file.name} loaded`;
-    converterPreview.textContent = uploadedText.slice(0, 1500) || "File is empty.";
+    converterPreview.textContent =
+      uploadedText.slice(0, 1500) || "File is empty.";
   };
   reader.readAsText(file);
 }
@@ -376,7 +496,7 @@ function parseUploadedText() {
     total: result.total,
     parsed: result.parsed,
     skipped: result.skipped,
-    mode
+    mode,
   };
   updateConverterPreview();
 }
@@ -391,10 +511,12 @@ function downloadParsedJson() {
     generatedAt: new Date().toISOString(),
     parserMode: lastParseStats.mode,
     count: parsedConverterEntries.length,
-    entries: parsedConverterEntries
+    entries: parsedConverterEntries,
   };
 
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {
+    type: "application/json",
+  });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -412,7 +534,12 @@ function importParsedEntriesToPlan() {
     return;
   }
 
-  plan.entries.push(...parsedConverterEntries.map((entry) => ({ ...entry, id: createEntryId() })));
+  plan.entries.push(
+    ...parsedConverterEntries.map((entry) => ({
+      ...entry,
+      id: createEntryId(),
+    })),
+  );
   state.selectedPassageId = plan.entries[plan.entries.length - 1]?.id || null;
   savePlans();
   renderAll();
@@ -448,13 +575,13 @@ function createSectionRow(initial = {}) {
     <div class="field-grid single">
       <label>
         Reading note
-        <input class="section-note" type="text" placeholder="Example: Pray before reading and meditate on the theme." value="${escapeHtml(initial.note || "")}" />
+        <input class="section-note" type="text" placeholder="Example: Pray before reading and meditate on the theme." value="${initial.note || ""}" />
       </label>
     </div>
     <div class="field-grid single">
       <label>
         Personal readback text (optional)
-        <textarea class="section-readback" rows="3" placeholder="Paste or write what you want read back.">${escapeHtml(initial.readbackText || "")}</textarea>
+        <textarea class="section-readback" rows="3" placeholder="Paste or write what you want read back.">${initial.readbackText || ""}</textarea>
       </label>
     </div>
   `;
@@ -493,7 +620,9 @@ function ensureAtLeastOneSection() {
 
 function resetSectionsFromBooks(books) {
   clearSectionRows();
-  books.forEach((book) => createSectionRow({ book, chapter: 1, fromVerse: 1, toVerse: 10 }));
+  books.forEach((book) =>
+    createSectionRow({ book, chapter: 1, fromVerse: 1, toVerse: 10 }),
+  );
   ensureAtLeastOneSection();
 }
 
@@ -506,10 +635,18 @@ function getSectionEntriesFromForm() {
       const fromVerse = Number(row.querySelector(".section-from")?.value) || 1;
       const toVerseRaw = Number(row.querySelector(".section-to")?.value);
       const toVerse = toVerseRaw || fromVerse;
-      const note = row.querySelector(".section-note")?.value?.trim() || "Daily reflection for this passage.";
-      const readbackText = row.querySelector(".section-readback")?.value?.trim() || "";
+      const note =
+        row.querySelector(".section-note")?.value?.trim() ||
+        "Daily reflection for this passage.";
+      const readbackText =
+        row.querySelector(".section-readback")?.value?.trim() || "";
 
-      if (!BOOKS.includes(book) || chapter < 1 || fromVerse < 1 || toVerse < fromVerse) {
+      if (
+        !BOOKS.includes(book) ||
+        chapter < 1 ||
+        fromVerse < 1 ||
+        toVerse < fromVerse
+      ) {
         return null;
       }
 
@@ -521,7 +658,7 @@ function getSectionEntriesFromForm() {
         toVerse,
         note,
         readbackText,
-        complete: false
+        complete: false,
       };
     })
     .filter(Boolean);
@@ -529,32 +666,28 @@ function getSectionEntriesFromForm() {
 
 function renderPlans() {
   if (!state.plans.length) {
-    planList.innerHTML = '<p class="empty-state">No plans yet. Create one to begin.</p>';
+    planList.innerHTML =
+      '<p class="empty-state">No plans yet. Create one to begin.</p>';
     return;
   }
 
-  planList.innerHTML = "";
-  state.plans.forEach((plan) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `plan-item ${plan.id === state.currentPlanId ? "active" : ""}`;
-    button.dataset.planId = plan.id;
+  planList.innerHTML = state.plans
+    .map(
+      (plan) => `
+      <button type="button" class="plan-item ${plan.id === state.currentPlanId ? "active" : ""}" data-plan-id="${plan.id}">
+        <strong>${plan.name}</strong>
+        <span>${plan.template ? PLAN_TEMPLATES[plan.template]?.label || "Custom" : "Custom"} · ${plan.entries.length} reading blocks</span>
+      </button>
+    `,
+    )
+    .join("");
 
-    const strong = document.createElement("strong");
-    strong.textContent = plan.name || "Untitled plan";
-
-    const span = document.createElement("span");
-    const templateLabel = plan.template ? PLAN_TEMPLATES[plan.template]?.label || "Custom" : "Custom";
-    span.textContent = `${templateLabel} · ${plan.entries.length} reading blocks`;
-
-    button.appendChild(strong);
-    button.appendChild(span);
+  planList.querySelectorAll(".plan-item").forEach((button) => {
     button.addEventListener("click", () => {
       state.currentPlanId = button.dataset.planId;
       state.selectedPassageId = getCurrentPlan()?.entries[0]?.id || null;
       renderAll();
     });
-    planList.appendChild(button);
   });
 }
 
@@ -570,40 +703,33 @@ function renderProgress() {
   const completed = plan.entries.filter((entry) => entry.complete).length;
   progressSummary.textContent = `${completed} of ${total} complete`;
 
-  progressList.innerHTML = "";
-  plan.entries.forEach((entry) => {
-    const item = document.createElement("div");
-    item.className = `progress-item ${entry.complete ? "done" : ""}`;
-    item.dataset.entryId = entry.id;
+  progressList.innerHTML = plan.entries
+    .map(
+      (entry) => `
+      <div class="progress-item ${entry.complete ? "done" : ""}" data-entry-id="${entry.id}">
+        <div>
+          <strong>${entry.book} ${entry.chapter}:${entry.fromVerse}-${entry.toVerse}</strong>
+          <span>${entry.note || "Daily reflection"}</span>
+        </div>
+        <button type="button" aria-label="Toggle reading completion for ${entry.book} ${entry.chapter}">${entry.complete ? "Completed" : "Mark done"}</button>
+      </div>
+    `,
+    )
+    .join("");
 
-    const textWrap = document.createElement("div");
-    const strong = document.createElement("strong");
-    strong.textContent = `${entry.book} ${entry.chapter}:${entry.fromVerse}-${entry.toVerse}`;
-    const span = document.createElement("span");
-    span.textContent = entry.note || "Daily reflection";
-    textWrap.appendChild(strong);
-    textWrap.appendChild(span);
-
-    const button = document.createElement("button");
-    button.type = "button";
-    button.setAttribute("aria-label", `Toggle reading completion for ${entry.book} ${entry.chapter}`);
-    button.textContent = entry.complete ? "Completed" : "Mark done";
-
-    item.appendChild(textWrap);
-    item.appendChild(button);
+  progressList.querySelectorAll(".progress-item").forEach((item) => {
+    const entryId = item.dataset.entryId;
     item.addEventListener("click", (event) => {
-      if (event.target === button) {
-        const entryRef = plan.entries.find((block) => block.id === item.dataset.entryId);
-        if (!entryRef) return;
-        entryRef.complete = !entryRef.complete;
+      if (event.target.tagName === "BUTTON") {
+        const entry = plan.entries.find((block) => block.id === entryId);
+        if (!entry) return;
+        entry.complete = !entry.complete;
         savePlans();
         renderProgress();
       } else {
-        setSelectedPassage(item.dataset.entryId);
+        setSelectedPassage(entryId);
       }
     });
-
-    progressList.appendChild(item);
   });
 }
 
@@ -620,38 +746,129 @@ function getQueuedEntriesFromDate(plan, dateString) {
   }
 
   const dayIndex = Math.max(0, getDayOffset(dateString));
-  const template = PLAN_TEMPLATES[plan.template || "plan1"] || PLAN_TEMPLATES.plan1;
+  const template =
+    PLAN_TEMPLATES[plan.template || "plan1"] || PLAN_TEMPLATES.plan1;
 
   if (dayIndex >= 365) {
     return [];
   }
 
   const dailyBlocks = [
-    { book: "Genesis", chapter: 1, fromVerse: 1, toVerse: 25, note: "Creation and the beginning of the covenant story." },
-    { book: "Matthew", chapter: 1, fromVerse: 1, toVerse: 18, note: "The incarnation and the promise fulfilled." },
-    { book: "Psalms", chapter: 1, fromVerse: 1, toVerse: 6, note: "Reflect on the righteous life." },
-    { book: "Proverbs", chapter: 1, fromVerse: 1, toVerse: 9, note: "Wisdom for everyday decisions." }
+    {
+      book: "Genesis",
+      chapter: 1,
+      fromVerse: 1,
+      toVerse: 25,
+      note: "Creation and the beginning of the covenant story.",
+    },
+    {
+      book: "Matthew",
+      chapter: 1,
+      fromVerse: 1,
+      toVerse: 18,
+      note: "The incarnation and the promise fulfilled.",
+    },
+    {
+      book: "Psalms",
+      chapter: 1,
+      fromVerse: 1,
+      toVerse: 6,
+      note: "Reflect on the righteous life.",
+    },
+    {
+      book: "Proverbs",
+      chapter: 1,
+      fromVerse: 1,
+      toVerse: 9,
+      note: "Wisdom for everyday decisions.",
+    },
   ];
 
   if (plan.template === "plan2") {
     const rotation = [
-      { book: "Romans", chapter: 1, fromVerse: 1, toVerse: 17, note: "Epistles section." },
-      { book: "Genesis", chapter: 1, fromVerse: 1, toVerse: 20, note: "Law section." },
-      { book: "Joshua", chapter: 1, fromVerse: 1, toVerse: 18, note: "History section." },
-      { book: "Psalms", chapter: 23, fromVerse: 1, toVerse: 6, note: "Psalms section." },
-      { book: "Job", chapter: 1, fromVerse: 1, toVerse: 12, note: "Poetry section." },
-      { book: "Isaiah", chapter: 1, fromVerse: 1, toVerse: 20, note: "Prophecy section." },
-      { book: "Matthew", chapter: 1, fromVerse: 1, toVerse: 18, note: "Gospels section." }
+      {
+        book: "Romans",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 17,
+        note: "Epistles section.",
+      },
+      {
+        book: "Genesis",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 20,
+        note: "Law section.",
+      },
+      {
+        book: "Joshua",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 18,
+        note: "History section.",
+      },
+      {
+        book: "Psalms",
+        chapter: 23,
+        fromVerse: 1,
+        toVerse: 6,
+        note: "Psalms section.",
+      },
+      {
+        book: "Job",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 12,
+        note: "Poetry section.",
+      },
+      {
+        book: "Isaiah",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 20,
+        note: "Prophecy section.",
+      },
+      {
+        book: "Matthew",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 18,
+        note: "Gospels section.",
+      },
     ];
     return [rotation[dayIndex % rotation.length]];
   }
 
   if (plan.template === "plan3") {
     const wideRead = [
-      { book: "Genesis", chapter: 1, fromVerse: 1, toVerse: 25, note: "Continue the cover-to-cover reading plan." },
-      { book: "Genesis", chapter: 2, fromVerse: 1, toVerse: 25, note: "Continue the beginning of creation." },
-      { book: "Genesis", chapter: 3, fromVerse: 1, toVerse: 24, note: "Reflect on the fall and promise." },
-      { book: "Matthew", chapter: 1, fromVerse: 1, toVerse: 25, note: "The promised King arrives." }
+      {
+        book: "Genesis",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 25,
+        note: "Continue the cover-to-cover reading plan.",
+      },
+      {
+        book: "Genesis",
+        chapter: 2,
+        fromVerse: 1,
+        toVerse: 25,
+        note: "Continue the beginning of creation.",
+      },
+      {
+        book: "Genesis",
+        chapter: 3,
+        fromVerse: 1,
+        toVerse: 24,
+        note: "Reflect on the fall and promise.",
+      },
+      {
+        book: "Matthew",
+        chapter: 1,
+        fromVerse: 1,
+        toVerse: 25,
+        note: "The promised King arrives.",
+      },
     ];
     return [wideRead[dayIndex % wideRead.length]];
   }
@@ -670,13 +887,20 @@ function renderSelectedPassage() {
 
   if (!selected) {
     selectedPassageTitle.textContent = "No passage selected";
-    selectedPassageText.textContent = "No reading blocks found for the selected day. Change the reading date or import/add entries for that day.";
+    selectedPassageText.textContent =
+      "No reading blocks found for the selected day. Change the reading date or import/add entries for that day.";
     return;
   }
 
   const passage = selected.book
     ? selected
-    : { book: selected.book, chapter: selected.chapter, fromVerse: selected.fromVerse, toVerse: selected.toVerse, note: selected.note };
+    : {
+        book: selected.book,
+        chapter: selected.chapter,
+        fromVerse: selected.fromVerse,
+        toVerse: selected.toVerse,
+        note: selected.note,
+      };
 
   selectedPassageTitle.textContent = `${passage.book} ${passage.chapter}:${passage.fromVerse}-${passage.toVerse}`;
   selectedPassageText.textContent = getPassageTemplate(passage);
@@ -716,42 +940,74 @@ function hydrateNewPlanForm() {
 }
 
 function populateVoices() {
-  const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+  const voices = window.speechSynthesis
+    ? window.speechSynthesis.getVoices()
+    : [];
   state.voices = voices;
 
-  voiceSelect.innerHTML = "";
-  if (!voices.length) {
-    const option = document.createElement("option");
-    option.value = "";
-    option.textContent = "No system voices available";
-    voiceSelect.appendChild(option);
-    return;
-  }
-
-  voices.forEach((voice, index) => {
-    const option = document.createElement("option");
-    option.value = String(index);
-    option.textContent = `${voice.name} (${voice.lang})`;
-    voiceSelect.appendChild(option);
-  });
+  voiceSelect.innerHTML = voices.length
+    ? voices
+        .map(
+          (voice, index) =>
+            `<option value="${index}">${voice.name} (${voice.lang})</option>`,
+        )
+        .join("")
+    : '<option value="">No system voices available</option>';
 }
 
-function updateInstallButtonVisibility() {
-  if (!installAppBtn) {
-    return;
-  }
+async function cacheAudioBlob(textKey, audioBlob) {
+  if (!("indexedDB" in window)) return false;
 
-  const standalone = window.matchMedia?.("(display-mode: standalone)")?.matches || window.navigator.standalone;
-  if (standalone || !deferredInstallPrompt) {
-    installAppBtn.classList.add("is-hidden");
-  } else {
-    installAppBtn.classList.remove("is-hidden");
+  try {
+    return new Promise((resolve) => {
+      const db = indexedDB.open("BibleAppAudio", 1);
+
+      db.onupgradeneeded = (e) => {
+        e.target.result.createObjectStore("audio");
+      };
+
+      db.onsuccess = (e) => {
+        const tx = e.target.result
+          .transaction("audio", "readwrite")
+          .objectStore("audio");
+        tx.put(audioBlob, textKey);
+        resolve(true);
+      };
+
+      db.onerror = () => resolve(false);
+    });
+  } catch {
+    return false;
+  }
+}
+
+async function getCachedAudio(textKey) {
+  if (!("indexedDB" in window)) return null;
+
+  try {
+    return new Promise((resolve) => {
+      const db = indexedDB.open("BibleAppAudio", 1);
+
+      db.onsuccess = (e) => {
+        const tx = e.target.result
+          .transaction("audio", "readonly")
+          .objectStore("audio");
+        const req = tx.get(textKey);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      };
+
+      db.onerror = () => resolve(null);
+    });
+  } catch {
+    return null;
   }
 }
 
 function speakCurrentPassage() {
   if (!("speechSynthesis" in window)) {
-    selectedPassageText.textContent = "Text-to-speech is not supported in this browser. You can still use uploaded audio later.";
+    selectedPassageText.textContent =
+      "Text-to-speech is not supported in this browser. You can still use uploaded audio later.";
     return;
   }
 
@@ -784,14 +1040,16 @@ function speakCurrentPassage() {
 
 function speakTodaysQueue() {
   if (!("speechSynthesis" in window)) {
-    selectedPassageText.textContent = "Text-to-speech is not supported in this browser.";
+    selectedPassageText.textContent =
+      "Text-to-speech is not supported in this browser.";
     return;
   }
 
   const plan = getCurrentPlan();
   const readList = getTodaysReadList(plan);
   if (!readList.length) {
-    selectedPassageText.textContent = "No reading blocks available for readback.";
+    selectedPassageText.textContent =
+      "No reading blocks available for readback.";
     return;
   }
 
@@ -799,7 +1057,9 @@ function speakTodaysQueue() {
     window.speechSynthesis.cancel();
   }
 
-  const text = readList.map((entry) => getReadbackText(entry)).join(" Next reading block. ");
+  const text = readList
+    .map((entry) => getReadbackText(entry))
+    .join(" Next reading block. ");
   const utterance = new SpeechSynthesisUtterance(text);
   const voices = window.speechSynthesis.getVoices();
   const chosenVoiceIndex = Number(voiceSelect.value);
@@ -843,8 +1103,8 @@ function addNewPlan() {
     entries: template.defaults.map((entry, index) => ({
       id: `template-${templateKey}-${index + 1}`,
       ...entry,
-      complete: false
-    }))
+      complete: false,
+    })),
   };
   state.plans.push(plan);
   state.currentPlanId = plan.id;
@@ -862,7 +1122,8 @@ planForm.addEventListener("submit", (event) => {
 
   const entries = getSectionEntriesFromForm();
   if (!entries.length) {
-    selectedPassageText.textContent = "No valid sections found. Update section fields and try again.";
+    selectedPassageText.textContent =
+      "No valid sections found. Update section fields and try again.";
     return;
   }
 
@@ -890,6 +1151,61 @@ pauseBtn.addEventListener("click", () => {
 stopBtn.addEventListener("click", () => {
   if (window.speechSynthesis) {
     window.speechSynthesis.cancel();
+  }
+});
+
+document.getElementById("predownloadBtn")?.addEventListener("click", async () => {
+  const plan = getCurrentPlan();
+  const readList = getTodaysReadList(plan);
+
+  if (!readList.length) {
+    alert("No reading blocks scheduled for today.");
+    return;
+  }
+
+  const btn = document.getElementById("predownloadBtn");
+  btn.disabled = true;
+  btn.textContent = "Downloading audio...";
+
+  try {
+    for (const entry of readList) {
+      const text = getReadbackText(entry);
+      const textKey = `${entry.id}_${Date.now()}`;
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      const voices = window.speechSynthesis.getVoices();
+      const chosenVoiceIndex = Number(voiceSelect.value);
+      if (voices[chosenVoiceIndex]) {
+        utterance.voice = voices[chosenVoiceIndex];
+      }
+      utterance.rate = Number(rateInput.value) || 1;
+
+      await new Promise((resolve) => {
+        utterance.onend = resolve;
+        window.speechSynthesis.speak(utterance);
+      });
+
+      await cacheAudioBlob(textKey, new Blob([text], { type: "text/plain" }));
+    }
+    alert(
+      `Downloaded audio for ${readList.length} passage(s). Ready for offline listening!`,
+    );
+  } catch {
+    alert("Failed to pre-download audio. Check browser support.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Pre-download today's audio";
+  }
+});
+
+document.getElementById("clearAudioCacheBtn")?.addEventListener("click", () => {
+  if (
+    confirm(
+      "Clear all cached audio? This will free storage but disable offline playback.",
+    )
+  ) {
+    indexedDB.deleteDatabase("BibleAppAudio");
+    alert("Audio cache cleared.");
   }
 });
 
@@ -926,33 +1242,15 @@ downloadJsonBtn?.addEventListener("click", downloadParsedJson);
 importJsonBtn?.addEventListener("click", importParsedEntriesToPlan);
 
 addSectionRowBtn?.addEventListener("click", () => createSectionRow());
-presetFourBtn?.addEventListener("click", () => resetSectionsFromBooks(FOUR_SECTION_PRESET));
-presetTenBtn?.addEventListener("click", () => resetSectionsFromBooks(TEN_SECTION_PRESET));
+presetFourBtn?.addEventListener("click", () =>
+  resetSectionsFromBooks(FOUR_SECTION_PRESET),
+);
+presetTenBtn?.addEventListener("click", () =>
+  resetSectionsFromBooks(TEN_SECTION_PRESET),
+);
 clearSectionRowsBtn?.addEventListener("click", () => {
   clearSectionRows();
   ensureAtLeastOneSection();
-});
-
-window.addEventListener("beforeinstallprompt", (event) => {
-  event.preventDefault();
-  deferredInstallPrompt = event;
-  updateInstallButtonVisibility();
-});
-
-installAppBtn?.addEventListener("click", async () => {
-  if (!deferredInstallPrompt) {
-    return;
-  }
-
-  deferredInstallPrompt.prompt();
-  await deferredInstallPrompt.userChoice;
-  deferredInstallPrompt = null;
-  updateInstallButtonVisibility();
-});
-
-window.addEventListener("appinstalled", () => {
-  deferredInstallPrompt = null;
-  updateInstallButtonVisibility();
 });
 
 window.speechSynthesis?.addEventListener?.("voiceschanged", populateVoices);
@@ -970,10 +1268,7 @@ function initialize() {
     readingDateInput.value = DAY_MIN;
   }
 
-  updateInstallButtonVisibility();
-
-  const isSecureContextForSw = location.protocol === "https:" || location.hostname === "localhost";
-  if ("serviceWorker" in navigator && isSecureContextForSw) {
+  if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(() => {
       // Keep the app functional even if service worker registration fails.
     });
