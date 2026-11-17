@@ -27,9 +27,14 @@
         <aside class="panel">
           <div class="panel-header">
             <h2>Plans</h2>
-            <button id="newPlanBtn" class="button primary" type="button">
-              New plan
-            </button>
+            <div class="section-buttons">
+              <button id="newPlanBtn" class="button primary" type="button">
+                New plan
+              </button>
+              <button id="deletePlanBtn" class="button secondary" type="button">
+                Delete plan
+              </button>
+            </div>
           </div>
 
           <div id="planList" class="plan-list" aria-live="polite"></div>
@@ -72,7 +77,7 @@
               <label>
                 Plan type
                 <select id="planTemplateSelect" name="planType">
-                  <option value="plan1">Plan 1 – ESV Every Day Bible (Crossway)</option>
+                  <option value="plan1">Plan 1 – ASV 365-Day Reading Plan</option>
                   <option value="plan2">Plan 2 – Seven-Section Rotation</option>
                   <option value="plan3">Plan 3 – Cover-to-Cover Order</option>
                 </select>
