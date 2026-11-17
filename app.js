@@ -15,23 +15,9 @@ const ownerOnlySection = document.getElementById("ownerOnlySection");
 const ownerOnlyContent = document.getElementById("ownerOnlyContent");
 
 let selectedToolSlug = config.tools[0].slug;
-let currentUser = null;
-
-const allowedEmails = (
-  config.owner && Array.isArray(config.owner.allowedEmails)
-    ? config.owner.allowedEmails
-    : []
-).map((email) => email.trim().toLowerCase());
-
-function isOwnerEmail(email) {
-  return (
-    typeof email === "string" &&
-    allowedEmails.includes(email.trim().toLowerCase())
-  );
-}
 
 function isOwnerLoggedIn() {
-  return Boolean(currentUser) && isOwnerEmail(currentUser.email);
+  return false;
 }
 
 function getStats(tools) {
@@ -135,16 +121,6 @@ function renderDetail() {
   const tool =
     config.tools.find((entry) => entry.slug === selectedToolSlug) ??
     config.tools[0];
-  const privateBlock =
-    isOwnerLoggedIn() && tool.privateSummary
-      ? `
-      <div class="detail-section">
-        <h3>Owner-only notes</h3>
-        <p class="detail-copy">${tool.privateSummary}</p>
-        ${renderPrivateBullets(tool)}
-      </div>
-    `
-      : "";
 
   detailPanel.innerHTML = `
     <div class="detail-header">
@@ -162,7 +138,6 @@ function renderDetail() {
       <p class="detail-copy">${tool.publicRoute}</p>
       <p class="detail-copy">${tool.activity} · ${tool.uptime}</p>
     </div>
-    ${privateBlock}
     <div class="detail-links">
       <a class="detail-link" href="${tool.publicPath}">
         <strong>Open public page</strong>
@@ -177,38 +152,8 @@ function renderPrivateContent() {
     return;
   }
 
-  if (!isOwnerLoggedIn()) {
-    ownerOnlySection.hidden = true;
-    ownerOnlyContent.innerHTML = "";
-    return;
-  }
-
-  ownerOnlySection.hidden = false;
-
-  const privateCards = config.tools
-    .filter((tool) => tool.privateSummary)
-    .map(
-      (tool) => `
-        <article class="owner-card">
-          <div class="detail-header">
-            <div>
-              <span class="detail-badge">${tool.slug}</span>
-              <h3>${tool.name}</h3>
-            </div>
-          </div>
-          <p class="detail-copy">${tool.privateSummary}</p>
-          ${renderPrivateBullets(tool)}
-        </article>
-      `,
-    )
-    .join("");
-
-  ownerOnlyContent.innerHTML = `
-    <p class="owner-note">${config.owner && config.owner.privateIntro ? config.owner.privateIntro : "This content is restricted to the approved owner account."}</p>
-    <div class="owner-grid">
-      ${privateCards || '<p class="detail-copy">No private summaries configured yet.</p>'}
-    </div>
-  `;
+  ownerOnlySection.hidden = true;
+  ownerOnlyContent.innerHTML = "";
 }
 
 function renderEmptyState() {
@@ -224,107 +169,32 @@ function renderEmptyState() {
 
 function updateAuthUi() {
   if (welcomeEyebrow) {
-    welcomeEyebrow.textContent = isOwnerLoggedIn()
-      ? "Owner dashboard"
-      : "Open dashboard";
+    welcomeEyebrow.textContent = "Open dashboard";
   }
 
   if (!authStatusEl || !googleSignInBtn || !googleSignOutBtn) {
     return;
   }
 
-  if (!window.firebase || !window.firebase.auth) {
-    authStatusEl.textContent =
-      "Firebase Auth is not configured yet. Add your values in site-config.js to enable Google sign-in.";
-    googleSignInBtn.disabled = true;
-    googleSignOutBtn.hidden = true;
-    return;
-  }
-
-  const approvedEmails = allowedEmails.join(", ");
-
-  if (currentUser && isOwnerLoggedIn()) {
-    authStatusEl.textContent = `Signed in as ${currentUser.email}. Owner-only content is unlocked.`;
-    googleSignInBtn.hidden = true;
-    googleSignOutBtn.hidden = false;
-  } else if (currentUser) {
-    authStatusEl.textContent = `Signed in as ${currentUser.email}, but this account is not approved for private access. Only ${approvedEmails} may sign in.`;
-    googleSignInBtn.hidden = true;
-    googleSignOutBtn.hidden = false;
-  } else {
-    authStatusEl.textContent =
-      config.owner && config.owner.accessMessage
-        ? config.owner.accessMessage
-        : "Public access is enabled. Restricted details unlock for your approved Google account.";
-    googleSignInBtn.hidden = false;
-    googleSignOutBtn.hidden = true;
-  }
+  authStatusEl.textContent = "Public access is enabled. No private details are exposed in the static site.";
+  googleSignInBtn.hidden = true;
+  googleSignOutBtn.hidden = true;
+  googleSignInBtn.disabled = true;
 }
 
 function initializeAuth() {
-  if (!window.firebase || !window.firebase.auth) {
-    return;
+  if (googleSignInBtn) {
+    googleSignInBtn.hidden = true;
+    googleSignInBtn.disabled = true;
   }
 
-  const auth = window.firebase.auth();
-  const provider = new window.firebase.auth.GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: "select_account" });
-
-  auth.onAuthStateChanged((user) => {
-    if (user && !isOwnerEmail(user.email)) {
-      auth.signOut().catch(() => {});
-      currentUser = null;
-      updateAuthUi();
-      renderPrivateContent();
-      renderDetail();
-      return;
-    }
-
-    currentUser = user;
-    updateAuthUi();
-    renderPrivateContent();
-    renderDetail();
-  });
-
-  googleSignInBtn.addEventListener("click", async () => {
-    try {
-      const result = await auth.signInWithPopup(provider);
-      const signedInUser = result && result.user ? result.user : null;
-
-      if (signedInUser && !isOwnerEmail(signedInUser.email)) {
-        authStatusEl.textContent = `Access denied for ${signedInUser.email}. Only ${allowedEmails.join(", ")} may sign in.`;
-        await auth.signOut();
-        currentUser = null;
-        updateAuthUi();
-        renderPrivateContent();
-        renderDetail();
-        return;
-      }
-    } catch (error) {
-      if (error && error.code === "auth/popup-blocked") {
-        authStatusEl.textContent =
-          "Popup was blocked. Please allow pop-ups and try sign-in again.";
-        return;
-      }
-
-      authStatusEl.textContent =
-        "Google sign-in failed. Please try again or confirm Firebase Auth is configured.";
-    }
-  });
-
-  googleSignOutBtn.addEventListener("click", async () => {
-    try {
-      await auth.signOut();
-    } catch (error) {
-      authStatusEl.textContent = "Unable to sign out. Please try again.";
-    }
-  });
+  if (googleSignOutBtn) {
+    googleSignOutBtn.hidden = true;
+  }
 }
 
 if (welcomeEyebrow) {
-  welcomeEyebrow.textContent = isOwnerLoggedIn()
-    ? "Owner dashboard"
-    : "Open dashboard";
+  welcomeEyebrow.textContent = "Open dashboard";
 }
 
 renderStats();
