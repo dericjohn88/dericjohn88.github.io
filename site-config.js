@@ -1,17 +1,4 @@
 window.siteConfig = {
-  firebase: {
-    apiKey: "AIzaSyDnTU6aFtglOzEWbRDANA2BxDRPdizmW_E",
-    authDomain: "dericjohn88-9f1fd.firebaseapp.com",
-    projectId: "dericjohn88-9f1fd",
-    appId: "1:842234641604:web:c25d1e34c6e0d6f7d31d91",
-  },
-  owner: {
-    allowedEmails: ["deric.john88@gmail.com"],
-    accessMessage:
-      "Public access is enabled. Restricted details unlock for your approved Google account.",
-    privateIntro:
-      "Sensitive notes and internal-only implementation details are visible only to the approved owner email.",
-  },
   tools: [
     {
       slug: "meals",
@@ -24,12 +11,6 @@ window.siteConfig = {
       activity: "PostgREST-backed CRUD",
       uptime: "In development",
       publicPath: "./meals/index.html",
-      privateSummary:
-        "Owner-only setup: meal reminder backend uses a private PostgREST API and push notification channel credentials that should remain hidden from public visitors.",
-      privateBullets: [
-        "Secure reminder delivery credentials and scheduler config remain in the private environment.",
-        "Production deployment notes and incident runbooks are not published publicly.",
-      ],
     },
     {
       slug: "autotrader",
@@ -42,12 +23,6 @@ window.siteConfig = {
       activity: "Broker health checks + execution logging",
       uptime: "In development",
       publicPath: "./autotrader/index.html",
-      privateSummary:
-        "Owner-only access includes broker auth handling, execution policy notes, and risk controls that are intentionally hidden from public users.",
-      privateBullets: [
-        "Broker credentials and policy thresholds stay in the private environment.",
-        "Trade execution alerts are reviewed only by the approved owner account.",
-      ],
     },
     {
       slug: "bible-app",
@@ -60,12 +35,6 @@ window.siteConfig = {
       activity: "PWA runtime + offline cache",
       uptime: "In development",
       publicPath: "./Bible App/index.html",
-      privateSummary:
-        "Owner-only notes include release plans and configuration details that are not intended for public visitors.",
-      privateBullets: [
-        "Private notes and deployment checklists remain restricted to owner access.",
-        "Internal roadmap items are intentionally hidden from public traffic.",
-      ],
     },
     {
       slug: "travel",
@@ -78,12 +47,6 @@ window.siteConfig = {
       activity: "Supplier timeout monitoring",
       uptime: "In development",
       publicPath: "./travel/index.html",
-      privateSummary:
-        "Owner-only notes: third-party supplier credentials, retry policies, and runbook procedures are restricted to the owner account.",
-      privateBullets: [
-        "Supplier recovery steps and outage notes are stored behind the owner-only gate.",
-        "Performance diagnostics for production vendors remain hidden from public traffic.",
-      ],
     },
     {
       slug: "bible-plan",
@@ -114,12 +77,6 @@ window.siteConfig = {
       activity: "Workout generation + history",
       uptime: "In development",
       publicPath: "./f3-workout-randomizer/index.html",
-      privateSummary:
-        "Owner-only implementation notes include internal exercise library metadata and setup notes that are intentionally not exposed publicly.",
-      privateBullets: [
-        "Exercise sourcing and curation details remain private.",
-        "Historical progress notes are reserved for owner access.",
-      ],
     },
     {
       slug: "financial-test-app",
@@ -132,12 +89,6 @@ window.siteConfig = {
       activity: "Model validation + reporting",
       uptime: "In development",
       publicPath: "./financial-test-app/index.html",
-      privateSummary:
-        "Owner-only access covers internal model assumptions, validation rules, and financial-report outputs that should not be shared widely.",
-      privateBullets: [
-        "Sensitive report logic and assumptions are hidden behind the private gate.",
-        "Validation and QA notes stay available only to the approved owner account.",
-      ],
     },
     {
       slug: "movie-deduplication",
@@ -150,12 +101,6 @@ window.siteConfig = {
       activity: "Dedupe pipeline planning",
       uptime: "In development",
       publicPath: "./movie-deduplication/index.html",
-      privateSummary:
-        "Owner-only details include data-source quality notes and cleanup decision criteria.",
-      privateBullets: [
-        "Dataset diagnostics and internal cleanup policies are private.",
-        "Operational notes remain available only to approved owner accounts.",
-      ],
     },
     {
       slug: "persistent-memory",
@@ -168,12 +113,6 @@ window.siteConfig = {
       activity: "Documentation curation",
       uptime: "In development",
       publicPath: "./persistent-memory/index.html",
-      privateSummary:
-        "Owner-only notes include personal workflow guidance and internal usage conventions.",
-      privateBullets: [
-        "Internal preference notes remain restricted to owner access.",
-        "Private workflow conventions are intentionally hidden from public visitors.",
-      ],
     },
   ],
 };

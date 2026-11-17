@@ -3,19 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Deric's Bible Reading Plan App</title>
+    <title>Private Bible Reading Plan</title>
     <meta
       name="description"
       content="Local-only Bible reading planner with custom plans and text-to-speech audio."
     />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
-    />
-    <meta name="referrer" content="no-referrer" />
     <meta name="theme-color" content="#0d1a2a" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icon-192.svg" />
     <link rel="stylesheet" href="styles.css" />
@@ -25,7 +18,7 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">Personal study</p>
-          <h1>Deric's Bible Reading Plan App</h1>
+          <h1>Private Bible Reading Plan</h1>
         </div>
         <a class="button secondary" href="../index.html">Back to dashboard</a>
       </header>
@@ -79,7 +72,7 @@
               <label>
                 Plan type
                 <select id="planTemplateSelect" name="planType">
-                  <option value="plan1">Plan 1 – Blended Daily Reading</option>
+                  <option value="plan1">Plan 1 – ESV Every Day Bible (Crossway)</option>
                   <option value="plan2">Plan 2 – Seven-Section Rotation</option>
                   <option value="plan3">Plan 3 – Cover-to-Cover Order</option>
                 </select>
@@ -185,13 +178,29 @@
               </label>
             </div>
 
+            <div class="form-actions">
+              <button
+                type="button"
+                id="predownloadBtn"
+                class="button secondary"
+                title="Pre-download today's passages for offline listening"
+              >
+                Pre-download today's audio
+              </button>
+              <button
+                type="button"
+                id="clearAudioCacheBtn"
+                class="button secondary"
+                title="Clear cached audio files to free storage"
+              >
+                Clear audio cache
+              </button>
+            </div>
+
             <p class="install-hint" id="installHint">
               Tip: on phone, add this page to your home screen for a lightweight
               app experience.
             </p>
-            <button id="installAppBtn" class="button secondary is-hidden" type="button">
-              Install app
-            </button>
           </div>
 
           <div class="progress-panel">
