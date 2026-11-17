@@ -1467,7 +1467,7 @@ function initialize() {
   }
 
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js").catch(() => {
+    navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).catch(() => {
       // Keep the app functional even if service worker registration fails.
     });
   }
