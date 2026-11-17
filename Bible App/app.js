@@ -229,6 +229,13 @@ const SAMPLE_PLAN = {
   })),
 };
 
+function deepClone(value) {
+  if (typeof structuredClone === "function") {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
 const state = {
   plans: [],
   currentPlanId: null,
@@ -296,14 +303,14 @@ function getSavedPlans() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      return [structuredClone(SAMPLE_PLAN)];
+      return [deepClone(SAMPLE_PLAN)];
     }
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) && parsed.length
       ? parsed
-      : [structuredClone(SAMPLE_PLAN)];
+      : [deepClone(SAMPLE_PLAN)];
   } catch (error) {
-    return [structuredClone(SAMPLE_PLAN)];
+    return [deepClone(SAMPLE_PLAN)];
   }
 }
 
