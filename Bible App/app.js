@@ -155,17 +155,34 @@ const PLAN_TEMPLATES = {
   },
 };
 
+function buildTemplateEntries(templateKey) {
+  const template = PLAN_TEMPLATES[templateKey] || PLAN_TEMPLATES.plan1;
+
+  if (template.useEsvEveryDay) {
+    return YEARLY_READING_SCHEDULE.flatMap((day, dayIndex) =>
+      day.map((passage, sectionIndex) => ({
+        id: `sample-day-${dayIndex + 1}-section-${sectionIndex + 1}`,
+        reference: passage,
+        note: ["Old Testament", "Psalms", "Proverbs", "New Testament"][sectionIndex] || `Section ${sectionIndex + 1}`,
+        complete: false,
+      })),
+    );
+  }
+
+  return (template.defaults || []).map((entry, index) => ({
+    id: `sample-entry-${index + 1}`,
+    ...entry,
+    complete: false,
+  }));
+}
+
 const SAMPLE_PLAN = {
   id: "sample-plan",
   name: "One-Year Bible Reading Plan",
   startDate: "2026-01-01",
   readingDate: "2026-01-01",
   template: "plan1",
-  entries: PLAN_TEMPLATES.plan1.defaults.map((entry, index) => ({
-    id: `sample-entry-${index + 1}`,
-    ...entry,
-    complete: false,
-  })),
+  entries: buildTemplateEntries("plan1"),
 };
 
 const ASV_BIBLE_PATH = "./asv-bible.json";
@@ -237,18 +254,36 @@ const TEN_SECTION_PRESET = [
   "Revelation",
 ];
 
+function deepCloneValue(value) {
+  if (typeof structuredClone === "function") {
+    return structuredClone(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => deepCloneValue(item));
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nestedValue]) => [key, deepCloneValue(nestedValue)]),
+    );
+  }
+
+  return value;
+}
+
 function getSavedPlans() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      return [structuredClone(SAMPLE_PLAN)];
+      return [deepCloneValue(SAMPLE_PLAN)];
     }
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) && parsed.length
       ? parsed
-      : [structuredClone(SAMPLE_PLAN)];
+      : [deepCloneValue(SAMPLE_PLAN)];
   } catch (error) {
-    return [structuredClone(SAMPLE_PLAN)];
+    return [deepCloneValue(SAMPLE_PLAN)];
   }
 }
 
@@ -1287,11 +1322,7 @@ async function addNewPlan() {
   if (template.useEsvEveryDay) {
     entries = await buildYearlyAsvEntries();
   } else {
-    entries = template.defaults.map((entry, index) => ({
-      id: `template-${templateKey}-${index + 1}`,
-      ...entry,
-      complete: false,
-    }));
+    entries = buildTemplateEntries(templateKey);
   }
 
   const plan = {

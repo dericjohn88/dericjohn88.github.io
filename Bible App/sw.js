@@ -1,4 +1,4 @@
-const CACHE_NAME = "bible-app-cache-v3";
+const CACHE_NAME = "bible-app-cache-v4";
 const ASSETS = [
   "./",
   "./index.html",
@@ -8,6 +8,42 @@ const ASSETS = [
   "./icon-192.svg",
   "./icon-512.svg",
 ];
+
+async function cacheAsset(request, response) {
+  if (!response || response.status !== 200 || response.type !== "basic") {
+    return;
+  }
+
+  const cache = await caches.open(CACHE_NAME);
+  await cache.put(request, response.clone());
+}
+
+async function networkFirst(request) {
+  try {
+    const response = await fetch(request);
+    if (response && response.ok) {
+      await cacheAsset(request, response);
+    }
+    return response;
+  } catch (error) {
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
+    if (request.mode === "navigate") {
+      return caches.match("./index.html");
+    }
+
+    return new Response("Offline - resource not available", {
+      status: 503,
+      statusText: "Service Unavailable",
+      headers: new Headers({
+        "Content-Type": "text/plain",
+      }),
+    });
+  }
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -37,43 +73,14 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  const { url } = request;
-
   if (request.method !== "GET") {
     return;
   }
 
-  event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+  const { url } = request;
+  if (url.includes("/favicon.ico") || url.includes("/apple-touch-icon")) {
+    return;
+  }
 
-      return fetch(request)
-        .then((networkResponse) => {
-          if (!networkResponse || networkResponse.status !== 200) {
-            return networkResponse;
-          }
-
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseToCache);
-          });
-
-          return networkResponse;
-        })
-        .catch(() => {
-          if (url.includes(".html")) {
-            return caches.match("./index.html");
-          }
-          return new Response("Offline - resource not available", {
-            status: 503,
-            statusText: "Service Unavailable",
-            headers: new Headers({
-              "Content-Type": "text/plain",
-            }),
-          });
-        });
-    }),
-  );
+  event.respondWith(networkFirst(request));
 });

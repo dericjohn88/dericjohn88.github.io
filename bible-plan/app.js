@@ -39,17 +39,22 @@ const PLAN_TEMPLATES = {
   }
 };
 
+function buildTemplateEntries(templateKey) {
+  const template = PLAN_TEMPLATES[templateKey] || PLAN_TEMPLATES.plan1;
+  return (template.defaults || []).map((entry, index) => ({
+    id: `sample-entry-${index + 1}`,
+    ...entry,
+    complete: false
+  }));
+}
+
 const SAMPLE_PLAN = {
   id: "sample-plan",
   name: "One-Year Bible Reading Plan",
   startDate: "2026-01-01",
   readingDate: "2026-01-01",
   template: "plan1",
-  entries: PLAN_TEMPLATES.plan1.defaults.map((entry, index) => ({
-    id: `sample-entry-${index + 1}`,
-    ...entry,
-    complete: false
-  }))
+  entries: buildTemplateEntries("plan1")
 };
 
 const state = {
@@ -85,16 +90,34 @@ const planStatus = document.getElementById("planStatus");
 const clearPlanBtn = document.getElementById("clearPlanBtn");
 const newPlanBtn = document.getElementById("newPlanBtn");
 
+function deepCloneValue(value) {
+  if (typeof structuredClone === "function") {
+    return structuredClone(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => deepCloneValue(item));
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nestedValue]) => [key, deepCloneValue(nestedValue)]),
+    );
+  }
+
+  return value;
+}
+
 function getSavedPlans() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      return [structuredClone(SAMPLE_PLAN)];
+      return [deepCloneValue(SAMPLE_PLAN)];
     }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length ? parsed : [structuredClone(SAMPLE_PLAN)];
+    return Array.isArray(parsed) && parsed.length ? parsed : [deepCloneValue(SAMPLE_PLAN)];
   } catch (error) {
-    return [structuredClone(SAMPLE_PLAN)];
+    return [deepCloneValue(SAMPLE_PLAN)];
   }
 }
 
